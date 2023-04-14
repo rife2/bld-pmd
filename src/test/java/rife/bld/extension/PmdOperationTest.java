@@ -16,14 +16,14 @@
 
 package rife.bld.extension;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * PmdOperationTest class
@@ -32,96 +32,105 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 1.0
  */
 public class PmdOperationTest {
-    static final PmdOperation PMD_OPERATION = new PmdOperation();
+    public static final String COMMAND_NAME = "pmd";
+    public static final String TEST = "test";
+    static final PmdOperation pmdOperation = new PmdOperation();
 
-    @BeforeAll
-    public static void initializeOperation() {
-        PMD_OPERATION.inputPaths = List.of(Paths.get("src/main"));
-        PMD_OPERATION.reportFile = Paths.get("build", "pmd", "pmd-test-report.txt");
-        PMD_OPERATION.cache = Paths.get("build", "pmd", "pmd-cache");
-        PMD_OPERATION.failOnViolation = false;
+    @BeforeEach
+    void initializeOperation() {
+        pmdOperation.inputPaths = List.of(Paths.get("src/main"));
+        pmdOperation.reportFile = Paths.get("build", COMMAND_NAME, "pmd-test-report.txt");
+        pmdOperation.cache = Paths.get("build", COMMAND_NAME, "pmd-cache");
+        pmdOperation.failOnViolation = false;
     }
 
     @Test
     void testConfigFile() {
-        var pmd = PMD_OPERATION.ruleSets("src/test/resources/pmd.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("src/test/resources/pmd.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isEqualTo(0);
     }
 
     @Test
     void testEmptyRuleSets() {
-        var pmd = PMD_OPERATION.ruleSets("");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isEqualTo(0);
     }
 
     @Test
     void testJavaQuickStart() {
-        var pmd = PMD_OPERATION.ruleSets("rulesets/java/quickstart.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("rulesets/java/quickstart.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isEqualTo(0);
     }
 
     @Test
     void testJavaErrorProne() {
-        var pmd = PMD_OPERATION.ruleSets("category/java/errorprone.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("category/java/errorprone.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isGreaterThan(0);
     }
 
     @Test
     void testJavaCodeStyle() {
-        var pmd = PMD_OPERATION.ruleSets("category/java/codestyle.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("category/java/codestyle.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isGreaterThan(0);
     }
 
     @Test
     void testJavaDesign() {
-        var pmd = PMD_OPERATION.ruleSets("category/java/design.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("category/java/design.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isGreaterThan(0);
     }
 
     @Test
     void testJavaDocumentation() {
-        var pmd = PMD_OPERATION.ruleSets("category/java/documentation.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("category/java/documentation.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isGreaterThan(0);
     }
 
     @Test
     void testJavaBestPractices() {
-        var pmd = PMD_OPERATION.ruleSets("category/java/bestpractices.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("category/java/bestpractices.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isEqualTo(0);
     }
 
     @Test
     void testJavaMultiThreading() {
-        var pmd = PMD_OPERATION.ruleSets("category/java/multithreading");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("category/java/multithreading");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isEqualTo(0);
     }
 
     @Test
     void testJavaPerformance() {
-        var pmd = PMD_OPERATION.ruleSets("category/java/performance.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("category/java/performance.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isEqualTo(0);
     }
 
     @Test
     void testJavaSecurity() {
-        var pmd = PMD_OPERATION.ruleSets("category/java/security.xml");
-        assertThat(pmd.performPmdAnalysis("test", pmd.initConfiguration("pmd")))
+        var pmd = pmdOperation.ruleSets("category/java/security.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isEqualTo(0);
     }
 
     @Test
     void testPmdOperation() {
-        assertThat(PMD_OPERATION.performPmdAnalysis("test", PMD_OPERATION.initConfiguration("pmd")))
+        assertThat(pmdOperation.performPmdAnalysis(TEST, pmdOperation.initConfiguration(COMMAND_NAME)))
                 .as("no errors").isEqualTo(0);
+    }
+
+    @Test
+    void testFailOnValidation() {
+        assertThatCode(() -> pmdOperation.ruleSets("category/java/documentation.xml").failOnViolation(true)
+                .performPmdAnalysis(TEST, pmdOperation.initConfiguration(COMMAND_NAME))
+        ).isInstanceOf(RuntimeException.class).hasMessageContaining('[' + TEST + ']');
     }
 }
