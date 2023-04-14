@@ -33,32 +33,121 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Performs static code analysis with <a href="https://pmd.github.io/">PMD</a>.
+ *
+ * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
+ * @since 1.0
+ */
 public class PmdOperation extends AbstractOperation<PmdOperation> {
-    private static final  Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
-    private static final String PMD_DIR = "pmd";
+    /**
+     * The default rule set.
+     */
     public static final String RULESET_DEFAULT = "rulesets/java/quickstart.xml";
+    private static final Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
+    private static final String PMD_DIR = "pmd";
+
+    /**
+     * The cache location.
+     */
     Path cache;
+    /**
+     * The debug toggle.
+     */
     boolean debug;
+    /**
+     * The encoding.
+     */
     String encoding = "UTF-8";
+    /**
+     * The fail on violation toggle.
+     */
     boolean failOnViolation;
+    /**
+     * The path of the ignore file
+     */
     Path ignoreFile;
+    /**
+     * The incremental analysis toggle.
+     */
     boolean incrementalAnalysis = true;
+    /**
+     * The input paths (source) list.
+     */
     List<Path> inputPaths = new ArrayList<>();
+    /**
+     * The input URI.
+     */
     URI inputUri;
+    /**
+     * The language version.
+     */
     LanguageVersion languageVersion;
+    /**
+     * The path to the report page.
+     */
     Path reportFile;
+    /**
+     * The report format.
+     */
     String reportFormat = "text";
+    /**
+     * The rule priority.
+     */
     RulePriority rulePriority = RulePriority.LOW;
+    /**
+     * The rule sets list.
+     */
     List<String> ruleSets = new ArrayList<>();
+    /**
+     * The show suppressed flag.
+     */
     boolean showSuppressed;
+    /**
+     * THe suppressed marker.
+     */
     String suppressedMarker = "NOPMD";
+    /**
+     * The number of threads.
+     */
     int threads = 1;
+    /**
+     * The project reference.
+     */
     private Project project;
 
+    /**
+     * Creates a new operation.
+     * <p>
+     * The defaults are:
+     * <ul>
+     * <li>encoding={@code UTF-9}</li>
+     * <li>incrementAnalysis={@code true}</li>
+     * <li>reportFormat={@code text}</li>
+     * <li>rulePriority={@code LOW}</li>
+     * <li>suppressedMarker={@code NOPMD}</li>
+     * </ul>
+     */
     public PmdOperation() {
         super();
     }
 
+    /**
+     * Creates a new operation.
+     * <p>
+     * The defaults are:
+     * <ul>
+     * <li>cache={@code build/pmd/pmd-cache}</li>
+     * <li>encoding={@code UTF-9}</li>
+     * <li>incrementAnalysis={@code true}</li>
+     * <li>inputPaths={@code [src/main, src/test]}</li>
+     * <li>reportFile={@code build/pmd/pmd-report-txt}</li>
+     * <li>reportFormat={@code text}</li>
+     * <li>rulePriority={@code LOW}</li>
+     * <li>ruleSets={@code [rulesets/java/quickstart.xml]}</li>
+     * <li>suppressedMarker={@code NOPMD}</li>
+     * </ul>
+     */
     public PmdOperation(Project project) {
         super();
         this.project = project;
@@ -80,6 +169,19 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Adds a new rule set path.
+     * <p>
+     * The built-in rule set paths are:
+     * <ul>
+     *     <li>{@code rulesets/java/quickstart.xml}</li>
+     *     <li>{@code category/java/bestpractices.xml}</li>
+     *     <li>{@code category/java/codestyle.xml}</li>
+     *     <li>{@code category/java/design.xml}</li>
+     *     <li>{@code category/java/documentation.xml}</li>
+     *     <li>{@code category/java/errorprone.xml}</li>
+     *     <li>{@code category/java/multithreading.xml}</li>
+     *     <li>{@code category/java/performance.xml}</li>
+     *     <li>{@code category/java/security.xml}</li>
+     * </ul>
      *
      * @see #ruleSets(String...)
      */
@@ -161,6 +263,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         return this;
     }
 
+    /**
+     * Creates a new initialized configuration.
+     */
     public PMDConfiguration initConfiguration(String commandName) {
         PMDConfiguration config = new PMDConfiguration();
         if (cache == null && project != null && incrementalAnalysis) {
@@ -214,6 +319,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         return this;
     }
 
+    /**
+     * Performs the PMD analysis with the given config.
+     */
     public int performPmdAnalysis(String commandName, PMDConfiguration config) throws RuntimeException {
         var pmd = PmdAnalysis.create(config);
         var report = pmd.performAnalysisAndCollectReport();
@@ -238,6 +346,17 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                     LOGGER.warning(msg);
                 }
             }
+        } else {
+            var rules = pmd.getRulesets();
+            if (rules.size() > 0) {
+                int count = 0;
+                for (var rule : rules) {
+                    count += rule.getRules().size();
+                }
+                if (LOGGER.isLoggable(Level.INFO)) {
+                    LOGGER.info(String.format("[%s] %d rules were checked.", commandName, count));
+                }
+            }
         }
         return numErrors;
     }
@@ -252,6 +371,19 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Sets the rule set path(s).
+     * <p>
+     * The built-in rule set paths are:
+     * <ul>
+     *     <li>{@code rulesets/java/quickstart.xml}</li>
+     *     <li>{@code category/java/bestpractices.xml}</li>
+     *     <li>{@code category/java/codestyle.xml}</li>
+     *     <li>{@code category/java/design.xml}</li>
+     *     <li>{@code category/java/documentation.xml}</li>
+     *     <li>{@code category/java/errorprone.xml}</li>
+     *     <li>{@code category/java/multithreading.xml}</li>
+     *     <li>{@code category/java/performance.xml}</li>
+     *     <li>{@code category/java/security.xml}</li>
+     * </ul>
      */
     public PmdOperation ruleSets(String... ruleSet) {
         ruleSets.clear();
