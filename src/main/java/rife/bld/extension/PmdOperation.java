@@ -43,12 +43,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The default rule set.
      */
-    public static final String RULESET_DEFAULT = "rulesets/java/quickstart.xml";
+    public static final String RULE_SET_DEFAULT = "rulesets/java/quickstart.xml";
     private static final Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
     private static final String PMD_DIR = "pmd";
 
     /**
      * The cache location.
+     *
      */
     Path cache;
     /**
@@ -154,21 +155,21 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
         inputPaths.add(project.srcMainDirectory().toPath());
         inputPaths.add(project.srcTestDirectory().toPath());
-        ruleSets.add(RULESET_DEFAULT);
+        ruleSets.add(RULE_SET_DEFAULT);
     }
 
     /**
-     * Adds the path to a source file, or directory containing source files to analyze.
+     * Adds paths to source files, or directories containing source files to analyze.
      *
      * @see #inputPaths(Path...)
      */
-    public PmdOperation addInputPath(Path inputPath) {
-        inputPaths.add(inputPath);
+    public PmdOperation addInputPath(Path... inputPath) {
+        inputPaths.addAll(List.of(inputPath));
         return this;
     }
 
     /**
-     * Adds a new rule set path.
+     * Adds new rule set paths.
      * <p>
      * The built-in rule set paths are:
      * <ul>
@@ -185,8 +186,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @see #ruleSets(String...)
      */
-    public PmdOperation addRuleSet(String ruleSet) {
-        ruleSets.add(ruleSet);
+    public PmdOperation addRuleSet(String... ruleSet) {
+        ruleSets.addAll(List.of(ruleSet));
         return this;
     }
 

@@ -69,28 +69,35 @@ public class PmdOperationTest {
     void testJavaErrorProne() {
         var pmd = pmdOperation.ruleSets("category/java/errorprone.xml");
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
-                .as("no errors").isGreaterThan(0);
+                .as("many errors").isGreaterThan(0);
+    }
+
+    @Test
+    void testJavaCodeStyleAndErrorProne() {
+        var pmd = pmdOperation.addRuleSet("category/java/codestyle.xml", "category/java/errorprone.xml");
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
+                .as("many errors").isGreaterThan(0);
     }
 
     @Test
     void testJavaCodeStyle() {
         var pmd = pmdOperation.ruleSets("category/java/codestyle.xml");
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
-                .as("no errors").isGreaterThan(0);
+                .as("many errors").isGreaterThan(0);
     }
 
     @Test
     void testJavaDesign() {
         var pmd = pmdOperation.ruleSets("category/java/design.xml");
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
-                .as("no errors").isGreaterThan(0);
+                .as("many errors").isGreaterThan(0);
     }
 
     @Test
     void testJavaDocumentation() {
         var pmd = pmdOperation.ruleSets("category/java/documentation.xml");
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
-                .as("no errors").isGreaterThan(0);
+                .as("many errors").isGreaterThan(0);
     }
 
     @Test
