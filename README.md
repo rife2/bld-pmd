@@ -10,7 +10,9 @@ To check all source code using the [java quickstart rule](https://pmd.github.io/
 ```java
 @BuildCommand
 public void pmd() throws Exception {
-    new PmdOperation(this).execute();
+    new PmdOperation
+        .fromProject(this)
+        .execute();
 }
 ```
 ```text
@@ -22,7 +24,8 @@ To check the main source code using a custom rule, [java error prone rule](https
 ```java
 @BuildCommand
 public void pmdMain() throws Exception {
-    new PmdOperation(this)
+    new PmdOperation
+        .fromProject(this)
         .failOnValidation(true)
         .addInputPath(project.srcMainDirectory().toPath())
         .addRuletSet("config/pmd.xml", "category/java/errorprone.xml");

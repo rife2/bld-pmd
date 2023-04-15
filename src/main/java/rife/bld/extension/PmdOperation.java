@@ -20,7 +20,7 @@ import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.PmdAnalysis;
 import net.sourceforge.pmd.RulePriority;
 import net.sourceforge.pmd.lang.LanguageVersion;
-import rife.bld.Project;
+import rife.bld.BaseProject;
 import rife.bld.operations.AbstractOperation;
 
 import java.net.URI;
@@ -122,26 +122,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The project reference.
      */
-    private Project project;
+    private BaseProject project;
 
     /**
-     * Creates a new operation.
-     * <p>
-     * The defaults are:
-     * <ul>
-     * <li>encoding={@code UTF-9}</li>
-     * <li>incrementAnalysis={@code true}</li>
-     * <li>reportFormat={@code text}</li>
-     * <li>rulePriority={@code LOW}</li>
-     * <li>suppressedMarker={@code NOPMD}</li>
-     * </ul>
-     */
-    public PmdOperation() {
-        super();
-    }
-
-    /**
-     * Creates a new operation.
+     * Configures a PMD operation from a {@link BaseProject}.
+     *
      * <p>
      * The defaults are:
      * <ul>
@@ -156,13 +141,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * <li>suppressedMarker={@code NOPMD}</li>
      * </ul>
      */
-    public PmdOperation(Project project) {
-        super();
+    public PmdOperation fromProject(BaseProject project) {
         this.project = project;
 
         inputPaths.add(project.srcMainDirectory().toPath());
         inputPaths.add(project.srcTestDirectory().toPath());
         ruleSets.add(RULE_SET_DEFAULT);
+        return this;
     }
 
     /**
@@ -225,7 +210,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Set the default language to be used for all input files.
+     * Sets the default language to be used for all input files.
      */
     public PmdOperation defaultLanguage(LanguageVersion... languageVersion) {
         this.languageVersions.addAll(List.of(languageVersion));
@@ -471,7 +456,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Set the input URI to process for source code objects.
+     * Sets the input URI to process for source code objects.
      */
     public PmdOperation uri(URI inputUri) {
         this.inputUri = inputUri;
