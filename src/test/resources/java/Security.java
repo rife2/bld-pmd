@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package java;import java.security.SecureRandom;
+package java;
 
 /**
  * Security class
@@ -24,11 +24,6 @@ package java;import java.security.SecureRandom;
  */
 public class Security {
     void bad() {
-        byte[] iv = new byte[] { 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, };
+        SecretKeySpec secretKeySpec = new SecretKeySpec("my secret here".getBytes(), "AES");
     }
-
-    void alsoBad() {
-        byte[] iv = "secret iv in here".getBytes();
-    }
-
 }

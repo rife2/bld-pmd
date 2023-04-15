@@ -177,7 +177,7 @@ class PmdOperationTest {
     void testJavaSecurity() {
         var pmd = newPmdOperation().ruleSets("category/java/security.xml")
                 .inputPaths(Path.of("src/test/resources/java/Security.java"));
-        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(0);
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(1);
     }
 
     @Test

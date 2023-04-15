@@ -14,7 +14,9 @@
  *  limitations under the License.
  */
 
-package java;import java.text.SimpleDateFormat;
+package java;
+
+import java.text.SimpleDateFormat;
 
 /**
  * MultiThreading class

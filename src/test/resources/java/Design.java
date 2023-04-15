@@ -14,7 +14,9 @@
  *  limitations under the License.
  */
 
-package java;/**
+package java;
+
+/**
  * Design class
  *
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
