@@ -362,9 +362,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                     config.getReportFilePath().toUri());
             for (var v : report.getViolations()) {
                 if (LOGGER.isLoggable(Level.WARNING)) {
-                    LOGGER.warning(String.format("[%s] %s:%d\n\t%s (%s)\n\t\t--> %s", commandName,
+                    LOGGER.warning(String.format("[%s] %s:%d:\n\t%s (%s)\n\t\t--> %s", commandName,
                             Paths.get(v.getFilename()).toUri(), v.getBeginLine(), v.getRule().getName(),
-                            v.getRule().getExternalInfoUrl(), v.getDescription()));
+                            v.getRule().getExternalInfoUrl() //TODO bug in PMD?
+                                    .replace("${pmd.website.baseurl}", "https://docs.pmd-code.org/pmd-doc-6.55.0"),
+                            v.getDescription()));
                 }
             }
             if (config.isFailOnViolation()) {
