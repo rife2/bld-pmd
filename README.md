@@ -12,26 +12,27 @@ To check all source code using the [java quickstart rule](https://pmd.github.io/
 ```java
 @BuildCommand
 public void pmd() throws Exception {
-    new PmdOperation
+    new PmdOperation()
         .fromProject(this)
         .execute();
 }
 ```
+
 ```text
 ./bld pmd test
 ```
 
-To check the main source code using a custom rule, [java error prone rule](https://pmd.github.io/pmd/pmd_rules_java.html) and failing on any violation.
+To check the main source directory using a custom rule, [java error prone rule](https://pmd.github.io/pmd/pmd_rules_java.html) and failing on any violation.
 
 ```java
 @BuildCommand
 public void pmdMain() throws Exception {
-    new PmdOperation
-        .fromProject(this)
-        .failOnValidation(true)
-        .addInputPath(project.srcMainDirectory().toPath())
-        .addRuletSet("config/pmd.xml", "category/java/errorprone.xml");
-        .execute();
+    new PmdOperation()
+            .fromProject(this)
+            .failOnViolation(true)
+            .inputPaths(this.srcMainDirectory().toPath())
+            .ruleSets("config/pmd.xml", "category/java/errorprone.xml")
+            .execute();
 }
 ```
 

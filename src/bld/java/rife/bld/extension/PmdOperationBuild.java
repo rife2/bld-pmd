@@ -16,7 +16,7 @@ public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(0, 9, 0, "SNAPSHOT");
+        version = version(0, 9, 1, "SNAPSHOT");
 
         javaRelease = 17;
         downloadSources = true;
@@ -40,7 +40,7 @@ public class PmdOperationBuild extends Project {
                 .link("https://javadoc.io/doc/net.sourceforge.pmd/pmd-core/latest/");
 
         publishOperation()
-//                .repository(MAVEN_LOCAL)
+                // .repository(MAVEN_LOCAL)
                 .repository(version.isSnapshot() ? repository("rife2-snapshot") : repository("rife2"))
                 .info()
                 .groupId("com.uwyn.rife2")
