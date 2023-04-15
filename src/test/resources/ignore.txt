@@ -1,0 +1,2 @@
+src/test/resources/java/ErrorProne.java
+src/test/resources/java/CodeStyle.java

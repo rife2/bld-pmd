@@ -49,7 +49,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * The cache location.
-     *
      */
     Path cache;
     /**
@@ -64,6 +63,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * The fail on violation toggle.
      */
     boolean failOnViolation;
+    /**
+     * The forced language.
+     */
+    LanguageVersion forcedLanguageVersion;
     /**
      * The path of the ignore file
      */
@@ -81,9 +84,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     URI inputUri;
     /**
-     * The language version.
+     * The default language version(s).
      */
-    LanguageVersion languageVersion;
+    List<LanguageVersion> languageVersions;
+    /**
+     * The relative roots paths.
+     */
+    List<Path> relativizeRoots = new ArrayList<>();
     /**
      * The path to the report page.
      */
@@ -169,6 +176,16 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * Add several paths to shorten paths that are output in the report.
+     *
+     * @see #addRelativizeRoot(Path...)
+     */
+    public PmdOperation addRelativizeRoot(Path... relativeRoot) {
+        this.relativizeRoots.addAll(List.of(relativeRoot));
+        return this;
+    }
+
+    /**
      * Adds new rule set paths.
      * <p>
      * The built-in rule set paths are:
@@ -208,6 +225,14 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * Set the default language to be used for all input files.
+     */
+    public PmdOperation defaultLanguage(LanguageVersion... languageVersion) {
+        this.languageVersions.addAll(List.of(languageVersion));
+        return this;
+    }
+
+    /**
      * <p>Specifies the character set encoding of the source code files. The default is {@code UTF-8}.</p>
      *
      * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
@@ -243,8 +268,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Forces a language to be used for all input files, irrespective of file names.
      */
-    public PmdOperation forceLanguage(LanguageVersion languageVersion) {
-        this.languageVersion = languageVersion;
+    public PmdOperation forceVersion(LanguageVersion languageVersion) {
+        this.forcedLanguageVersion = languageVersion;
         return this;
     }
 
@@ -269,29 +294,41 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PMDConfiguration initConfiguration(String commandName) {
         PMDConfiguration config = new PMDConfiguration();
+
         if (cache == null && project != null && incrementalAnalysis) {
             config.setAnalysisCacheLocation(
                     Paths.get(project.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-cache").toFile().getAbsolutePath());
         } else if (cache != null) {
             config.setAnalysisCacheLocation(cache.toFile().getAbsolutePath());
         }
+
         config.setDebug(debug);
         config.setFailOnViolation(failOnViolation);
-        if (languageVersion != null) {
-            config.setForceLanguageVersion(languageVersion);
+
+        if (languageVersions != null) {
+            config.setDefaultLanguageVersions(languageVersions);
         }
+
+        if (forcedLanguageVersion != null) {
+            config.setForceLanguageVersion(forcedLanguageVersion);
+        }
+
         if (ignoreFile != null) {
             config.setIgnoreFilePath(ignoreFile);
         }
+
         config.setIgnoreIncrementalAnalysis(!incrementalAnalysis);
+
         if (inputPaths.isEmpty()) {
             throw new IllegalArgumentException(commandName + ": InputPaths required.");
         } else {
             config.setInputPathList(inputPaths);
         }
+
         if (inputUri != null) {
             config.setInputUri(inputUri);
         }
+
         config.setMinimumPriority(rulePriority);
 
         if (project != null) {
@@ -301,6 +338,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             config.setReportFile(reportFile);
         }
 
+        config.addRelativizeRoots(relativizeRoots);
         config.setReportFormat(reportFormat);
         config.setRuleSets(ruleSets);
         config.setShowSuppressedViolations(showSuppressed);
@@ -313,6 +351,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Sets the to source files, or directories containing source files to analyze.
+     * Previously set paths will be disregarded.
+     *
+     * @see #addInputPath(Path...)
      */
     public PmdOperation inputPaths(Path... inputPath) {
         inputPaths.clear();
@@ -363,6 +404,17 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * Sets several paths to shorten paths that are output in the report. Previous relative paths will be disregarded.
+     *
+     * @see #addRelativizeRoot(Path...)
+     */
+    public PmdOperation relativizeRoots(Path... relativeRoot) {
+        this.relativizeRoots.clear();
+        this.relativizeRoots.addAll(List.of(relativeRoot));
+        return this;
+    }
+
+    /**
      * Sets the output format of the analysis report. The default is {@code text}.
      */
     public PmdOperation reportFormat(String reportFormat) {
@@ -371,7 +423,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the rule set path(s).
+     * Sets the rule set path(s), disregarding any previously set paths.
      * <p>
      * The built-in rule set paths are:
      * <ul>
@@ -385,6 +437,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
+     *
+     * @see #addRuleSet(String...)
      */
     public PmdOperation ruleSets(String... ruleSet) {
         ruleSets.clear();
