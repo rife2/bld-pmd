@@ -33,12 +33,6 @@ public class MultiThreading {
         sdf.format("bar"); // poor, no thread-safety
     }
 
-    void foo() {
-        synchronized (sdf) { // preferred
-            sdf.format("foo");
-        }
-    }
-
     Object obj() {
         if (baz == null) { // baz may be non-null yet not fully created
             synchronized (this) {

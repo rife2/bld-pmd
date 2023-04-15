@@ -23,15 +23,15 @@ package java;
  * @since 1.0
  */
 public class BestPractices {
-    private final String ip = "127.0.0.1";     // not recommended
-    private StringBuffer buffer;    // potential memory leak as an instance variable;
+    private final String ip = "127.0.0.1"; // not recommended
+    private StringBuffer buffer; // potential memory leak as an instance variable;
     private String[] x;
 
     void bar(int a) {
         switch (a) {
-            case 1:  // do something
+            case 1: // do something
                 break;
-            default:  // the default case should be last, by convention
+            default: // the default case should be last, by convention
                 break;
             case 2:
                 break;
@@ -47,6 +47,4 @@ public class BestPractices {
         name = name.trim();
         System.out.println("Hello " + name);
     }
-
-
 }

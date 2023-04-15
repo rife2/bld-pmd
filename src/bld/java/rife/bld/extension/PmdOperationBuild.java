@@ -40,8 +40,8 @@ public class PmdOperationBuild extends Project {
                 .link("https://javadoc.io/doc/net.sourceforge.pmd/pmd-core/latest/");
 
         publishOperation()
-                .repository(MAVEN_LOCAL)
-//                 .repository(version.isSnapshot() ? repository("rife2-snapshot") : repository("rife2"))
+//                .repository(MAVEN_LOCAL)
+                .repository(version.isSnapshot() ? repository("rife2-snapshot") : repository("rife2"))
                 .info()
                 .groupId("com.uwyn.rife2")
                 .artifactId("bld-pmd")

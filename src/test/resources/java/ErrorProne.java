@@ -37,18 +37,18 @@ public class ErrorProne {
         }
     }
 
-    void foo() {
-        try {
-            // do something
-        } catch (Throwable th) {  // should not catch Throwable
-            th.printStackTrace();
-        }
-    }
-
     void bar() {
         try {
             // do something
         } catch (NullPointerException npe) {
+        }
+    }
+
+    void foo() {
+        try {
+            // do something
+        } catch (Throwable th) { // should not catch Throwable
+            th.printStackTrace();
         }
     }
 }

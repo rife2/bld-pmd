@@ -26,10 +26,6 @@ public class Design {
     String field;
     int otherField;
 
-    void foo() {
-        throw new NullPointerException();
-    }
-
     public void bar(int x, int y, int z) {
         if (x > y) {
             if (y > z) {
@@ -38,5 +34,9 @@ public class Design {
                 }
             }
         }
+    }
+
+    void foo() {
+        throw new NullPointerException();
     }
 }

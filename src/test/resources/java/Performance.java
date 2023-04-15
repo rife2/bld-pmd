@@ -29,7 +29,6 @@ public class Performance {
         }
     }
 
-
     private boolean checkTrimEmpty(String str) {
         for (int i = 0; i < str.length(); i++) {
             if (!Character.isWhitespace(str.charAt(i))) {
@@ -41,7 +40,7 @@ public class Performance {
 
     void foo() {
         StringBuffer sb = new StringBuffer();
-        sb.append("a");     // avoid this
+        sb.append("a"); // avoid this
 
         String foo = " ";
         StringBuffer buf = new StringBuffer();
@@ -51,7 +50,6 @@ public class Performance {
 
         buf.append("Hello").append(" ").append("World");
 
-        StringBuffer sbuf = new StringBuffer("tmp = " + System.getProperty("java.io.tmpdir"));
-// poor
+        StringBuffer sbuf = new StringBuffer("tmp = " + System.getProperty("java.io.tmpdir")); // poor
     }
 }

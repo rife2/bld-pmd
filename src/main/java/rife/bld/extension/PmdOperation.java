@@ -125,32 +125,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     private BaseProject project;
 
     /**
-     * Configures a PMD operation from a {@link BaseProject}.
-     *
-     * <p>
-     * The defaults are:
-     * <ul>
-     * <li>cache={@code build/pmd/pmd-cache}</li>
-     * <li>encoding={@code UTF-9}</li>
-     * <li>incrementAnalysis={@code true}</li>
-     * <li>inputPaths={@code [src/main, src/test]}</li>
-     * <li>reportFile={@code build/pmd/pmd-report-txt}</li>
-     * <li>reportFormat={@code text}</li>
-     * <li>rulePriority={@code LOW}</li>
-     * <li>ruleSets={@code [rulesets/java/quickstart.xml]}</li>
-     * <li>suppressedMarker={@code NOPMD}</li>
-     * </ul>
-     */
-    public PmdOperation fromProject(BaseProject project) {
-        this.project = project;
-
-        inputPaths.add(project.srcMainDirectory().toPath());
-        inputPaths.add(project.srcTestDirectory().toPath());
-        ruleSets.add(RULE_SET_DEFAULT);
-        return this;
-    }
-
-    /**
      * Adds paths to source files, or directories containing source files to analyze.
      *
      * @see #inputPaths(Path...)
@@ -161,7 +135,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Add several paths to shorten paths that are output in the report.
+     * Adds several paths to shorten paths that are output in the report.
      *
      * @see #addRelativizeRoot(Path...)
      */
@@ -255,6 +229,32 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation forceVersion(LanguageVersion languageVersion) {
         this.forcedLanguageVersion = languageVersion;
+        return this;
+    }
+
+    /**
+     * Configures a PMD operation from a {@link BaseProject}.
+     *
+     * <p>
+     * The defaults are:
+     * <ul>
+     * <li>cache={@code build/pmd/pmd-cache}</li>
+     * <li>encoding={@code UTF-9}</li>
+     * <li>incrementAnalysis={@code true}</li>
+     * <li>inputPaths={@code [src/main, src/test]}</li>
+     * <li>reportFile={@code build/pmd/pmd-report-txt}</li>
+     * <li>reportFormat={@code text}</li>
+     * <li>rulePriority={@code LOW}</li>
+     * <li>ruleSets={@code [rulesets/java/quickstart.xml]}</li>
+     * <li>suppressedMarker={@code NOPMD}</li>
+     * </ul>
+     */
+    public PmdOperation fromProject(BaseProject project) {
+        this.project = project;
+
+        inputPaths.add(project.srcMainDirectory().toPath());
+        inputPaths.add(project.srcTestDirectory().toPath());
+        ruleSets.add(RULE_SET_DEFAULT);
         return this;
     }
 
@@ -363,7 +363,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             for (var v : report.getViolations()) {
                 if (LOGGER.isLoggable(Level.WARNING)) {
                     LOGGER.warning(String.format("[%s] %s:%d\n\t%s (%s)\n\t\t--> %s", commandName,
-                            Paths.get(v.getFilename()).toUri(), v.getBeginLine(), v.getRule().getName(), v.getRule().getExternalInfoUrl(), v.getDescription()));
+                            Paths.get(v.getFilename()).toUri(), v.getBeginLine(), v.getRule().getName(),
+                            v.getRule().getExternalInfoUrl(), v.getDescription()));
                 }
             }
             if (config.isFailOnViolation()) {

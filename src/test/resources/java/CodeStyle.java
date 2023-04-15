@@ -25,7 +25,7 @@ package java;
 public final class CodeStyle {
     final int FinalField = 1;
     private int x;
-    private int y;  // class cannot be subclassed, so is y really private or package visible?
+    private int y; // class cannot be subclassed, so is y really private or package visible?
 
     // missing constructor
 

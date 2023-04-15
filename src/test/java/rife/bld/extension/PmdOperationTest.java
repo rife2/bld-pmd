@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  * @since 1.0
  */
 class PmdOperationTest {
+    static final String CATEGORY_FOO = "category/foo.xml";
     static final String CODE_STYLE = "category/java/codestyle.xml";
     static final Path CODE_STYLE_SAMPLE = Path.of("src/test/resources/java/CodeStyle.java");
     static final int CODING_STYLE_ERRORS = 16;
@@ -44,7 +45,6 @@ class PmdOperationTest {
     static final int ERROR_PRONE_ERRORS = 8;
     static final Path ERROR_PRONE_SAMPLE = Path.of("src/test/resources/java/ErrorProne.java");
     static final String TEST = "test";
-    static final String CATEGORY_FOO = "category/foo.xml";
 
     PmdOperation newPmdOperation() {
         final PmdOperation pmdOperation = new PmdOperation();
