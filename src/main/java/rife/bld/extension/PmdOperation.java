@@ -366,7 +366,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                     LOGGER.log(Level.WARNING, "[{0}] {1}:{2}:\n\t{3} ({4})\n\t\t--> {5}",
                             new Object[]{commandName, Paths.get(v.getFilename()).toUri(), v.getBeginLine(),
                                     v.getRule().getName(),
-                                    v.getRule().getExternalInfoUrl(),
+                                    v.getRule().getExternalInfoUrl() //TODO bug in PMD?
+                                            .replace("${pmd.website.baseurl}",
+                                            "https://docs.pmd-code.org/pmd-doc-7.0.0-rc1"),
                                     v.getDescription()});
                 }
             }
