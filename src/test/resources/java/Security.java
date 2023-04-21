@@ -16,6 +16,8 @@
 
 package java;
 
+import javax.crypto.spec.SecretKeySpec;
+
 /**
  * Security class
  *

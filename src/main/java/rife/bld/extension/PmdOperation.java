@@ -353,7 +353,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         var pmd = PmdAnalysis.create(config);
         var report = pmd.performAnalysisAndCollectReport();
         if (LOGGER.isLoggable(Level.INFO)) {
-            LOGGER.info(String.format("[%s] ruleSets%s", commandName, ruleSets));
+            LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths});
+            LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets});
         }
         var numErrors = report.getViolations().size();
         if (numErrors > 0) {
@@ -362,11 +363,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                     config.getReportFilePath().toUri());
             for (var v : report.getViolations()) {
                 if (LOGGER.isLoggable(Level.WARNING)) {
-                    LOGGER.warning(String.format("[%s] %s:%d:\n\t%s (%s)\n\t\t--> %s", commandName,
-                            Paths.get(v.getFilename()).toUri(), v.getBeginLine(), v.getRule().getName(),
-                            v.getRule().getExternalInfoUrl() //TODO bug in PMD?
-                                    .replace("${pmd.website.baseurl}", "https://docs.pmd-code.org/pmd-doc-6.55.0"),
-                            v.getDescription()));
+                    LOGGER.log(Level.WARNING, "[{0}] {1}:{2}:\n\t{3} ({4})\n\t\t--> {5}",
+                            new Object[]{commandName, Paths.get(v.getFilename()).toUri(), v.getBeginLine(),
+                                    v.getRule().getName(),
+                                    v.getRule().getExternalInfoUrl(),
+                                    v.getDescription()});
                 }
             }
             if (config.isFailOnViolation()) {

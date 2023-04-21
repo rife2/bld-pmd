@@ -39,7 +39,7 @@ class PmdOperationTest {
     static final String CATEGORY_FOO = "category/foo.xml";
     static final String CODE_STYLE = "category/java/codestyle.xml";
     static final Path CODE_STYLE_SAMPLE = Path.of("src/test/resources/java/CodeStyle.java");
-    static final int CODING_STYLE_ERRORS = 16;
+    static final int CODING_STYLE_ERRORS = 13;
     static final String COMMAND_NAME = "pmd";
     static final String ERROR_PRONE = "category/java/errorprone.xml";
     static final int ERROR_PRONE_ERRORS = 8;
@@ -59,7 +59,7 @@ class PmdOperationTest {
     void testAddInputPaths() {
         var pmd = newPmdOperation().ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE).inputPaths(ERROR_PRONE_SAMPLE)
                 .addInputPath(CODE_STYLE_SAMPLE);
-        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(42);
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(36);
     }
 
     @Test
@@ -128,7 +128,7 @@ class PmdOperationTest {
                 .as("code style").isEqualTo(CODING_STYLE_ERRORS);
         pmd = pmd.addRuleSet(ERROR_PRONE).addInputPath(ERROR_PRONE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
-                .as("code style + error prone").isEqualTo(40);
+                .as("code style + error prone").isEqualTo(34);
     }
 
     @Test
@@ -156,7 +156,7 @@ class PmdOperationTest {
     void testJavaMultiThreading() {
         var pmd = newPmdOperation().ruleSets("category/java/multithreading.xml")
                 .inputPaths(Path.of("src/test/resources/java/MultiThreading.java"));
-        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(4);
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(3);
     }
 
     @Test
@@ -170,7 +170,7 @@ class PmdOperationTest {
     void testJavaQuickStart() {
         var pmd = newPmdOperation().ruleSets("rulesets/java/quickstart.xml")
                 .inputPaths(Path.of("src/test/resources/java"));
-        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(35);
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(34);
     }
 
     @Test

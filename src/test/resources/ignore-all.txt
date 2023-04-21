@@ -1,1 +1,2 @@
-src/test/resources/java/
+src/main
+src/test
