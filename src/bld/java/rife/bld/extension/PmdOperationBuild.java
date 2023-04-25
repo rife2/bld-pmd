@@ -19,7 +19,7 @@ public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(0, 9, 1, "SNAPSHOT");
+        version = version(0, 9, 1);
 
         javaRelease = 17;
         downloadSources = true;
@@ -28,10 +28,11 @@ public class PmdOperationBuild extends Project {
 
         var pmd = version(7, 0, 0, "rc1");
         scope(compile)
-                .include(dependency("com.uwyn.rife2", "rife2", version(1, 5, 22)))
+                .include(dependency("com.uwyn.rife2", "rife2", version(1, 6, 1)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
-                .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
+                .include(dependency("net.sourceforge.pmd", "pmd-java", pmd))
+                .include(dependency("org.slf4j", "slf4j-simple", version(2,0,7)));
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 9, 2)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 9, 2)))
