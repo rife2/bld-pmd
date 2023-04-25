@@ -37,7 +37,7 @@ public void pmdMain() throws Exception {
 ```
 
 ```text
-./dld compile pmdMain
+./bld compile pmdMain
 ```
 
 Please check the [PmdOperation documentation](https://rife2.github.io/bld-pmd/rife/bld/extension/PmdOperation.html#method-summary) for all available configuration options.
