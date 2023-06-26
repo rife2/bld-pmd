@@ -1,6 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="EntryPointsManager">
+    <entry_points version="2.0">
+      <entry_point TYPE="field" FQNAME="rife.bld.extension.PmdOperation languageVersions" />
+      <entry_point TYPE="field" FQNAME="rife.bld.extension.PmdOperation reportFile" />
+      <entry_point TYPE="field" FQNAME="rife.bld.extension.PmdOperation RULE_SET_DEFAULT" />
+    </entry_points>
+    <pattern value="rife.bld.extension.PmdOperation" method="addInputPath" />
+    <pattern value="rife.bld.extension.PmdOperation" method="addRelativizeRoot" />
+    <pattern value="rife.bld.extension.PmdOperation" method="addRuleSet" />
+    <pattern value="rife.bld.extension.PmdOperation" method="cache" />
+    <pattern value="rife.bld.extension.PmdOperation" method="debug" />
+    <pattern value="rife.bld.extension.PmdOperation" method="defaultLanguage" />
+    <pattern value="rife.bld.extension.PmdOperation" method="encoding" />
+    <pattern value="rife.bld.extension.PmdOperation" method="failOnViolation" />
+    <pattern value="rife.bld.extension.PmdOperation" method="forceVersion" />
+    <pattern value="rife.bld.extension.PmdOperation" method="fromProject" />
+    <pattern value="rife.bld.extension.PmdOperation" method="ignoreFile" />
+    <pattern value="rife.bld.extension.PmdOperation" />
+    <pattern value="rife.bld.extension.PmdOperation" method="incrementalAnalysis" />
+    <pattern value="rife.bld.extension.PmdOperation" method="inputPaths" />
+    <pattern value="rife.bld.extension.PmdOperation" method="relativizeRoots" />
+    <pattern value="rife.bld.extension.PmdOperation" method="reportFormat" />
+    <pattern value="rife.bld.extension.PmdOperation" method="ruleSets" />
+    <pattern value="rife.bld.extension.PmdOperation" method="showSuppressed" />
+    <pattern value="rife.bld.extension.PmdOperation" method="suppressedMarker" />
+    <pattern value="rife.bld.extension.PmdOperation" method="threads" />
+    <pattern value="rife.bld.extension.PmdOperation" method="uri" />
+  </component>
   <component name="PDMPlugin">
+    <option name="customRuleSets">
+      <list>
+        <option value="K:\java\semver\config\pmd.xml" />
+      </list>
+    </option>
     <option name="skipTestSources" value="false" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="17" project-jdk-type="JavaSDK">

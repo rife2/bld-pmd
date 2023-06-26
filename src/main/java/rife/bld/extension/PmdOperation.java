@@ -46,7 +46,22 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     public static final String RULE_SET_DEFAULT = "rulesets/java/quickstart.xml";
     private static final Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
     private static final String PMD_DIR = "pmd";
-
+    /**
+     * The input paths (source) list.
+     */
+    final List<Path> inputPaths = new ArrayList<>();
+    /**
+     * The relative roots paths.
+     */
+    final List<Path> relativizeRoots = new ArrayList<>();
+    /**
+     * The rule priority.
+     */
+    final RulePriority rulePriority = RulePriority.LOW;
+    /**
+     * The rule sets list.
+     */
+    final List<String> ruleSets = new ArrayList<>();
     /**
      * The cache location.
      */
@@ -76,10 +91,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     boolean incrementalAnalysis = true;
     /**
-     * The input paths (source) list.
-     */
-    List<Path> inputPaths = new ArrayList<>();
-    /**
      * The input URI.
      */
     URI inputUri;
@@ -88,10 +99,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     List<LanguageVersion> languageVersions;
     /**
-     * The relative roots paths.
-     */
-    List<Path> relativizeRoots = new ArrayList<>();
-    /**
      * The path to the report page.
      */
     Path reportFile;
@@ -99,14 +106,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * The report format.
      */
     String reportFormat = "text";
-    /**
-     * The rule priority.
-     */
-    RulePriority rulePriority = RulePriority.LOW;
-    /**
-     * The rule sets list.
-     */
-    List<String> ruleSets = new ArrayList<>();
     /**
      * The show suppressed flag.
      */

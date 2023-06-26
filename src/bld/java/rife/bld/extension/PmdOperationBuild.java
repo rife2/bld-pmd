@@ -19,23 +19,25 @@ public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(0, 9, 1);
+        version = version(0, 9, 2, "SNAPSHOT");
 
         javaRelease = 17;
         downloadSources = true;
         autoDownloadPurge = true;
         repositories = List.of(MAVEN_CENTRAL, RIFE2_RELEASES);
 
-        var pmd = version(7, 0, 0, "rc1");
+        var pmd = version(7, 0, 0, "rc2");
+        var rife2 = version(1,7,0);
         scope(compile)
-                .include(dependency("com.uwyn.rife2", "rife2", version(1, 6, 1)))
+                .include(dependency("com.uwyn.rife2", "rife2", rife2))
+                .include(dependency("com.uwyn.rife2", "bld", rife2))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd))
                 .include(dependency("org.slf4j", "slf4j-simple", version(2,0,7)));
         scope(test)
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 9, 2)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 9, 2)))
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 9, 3)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 9, 3)))
                 .include(dependency("org.assertj:assertj-joda-time:2.2.0"));
 
         javadocOperation()
