@@ -380,7 +380,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             }
         } else {
             var rules = pmd.getRulesets();
-            if (rules.size() > 0) {
+            if (!rules.isEmpty()) {
                 int count = 0;
                 for (var rule : rules) {
                     count += rule.getRules().size();
