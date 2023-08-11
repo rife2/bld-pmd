@@ -67,10 +67,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     Path cache;
     /**
-     * The debug toggle.
-     */
-    boolean debug;
-    /**
      * The encoding.
      */
     String encoding = "UTF-8";
@@ -175,14 +171,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Enables or disables debug logging mode.
-     */
-    public PmdOperation debug(boolean debug) {
-        this.debug = debug;
-        return this;
-    }
-
-    /**
      * Sets the default language to be used for all input files.
      */
     public PmdOperation defaultLanguage(LanguageVersion... languageVersion) {
@@ -202,11 +190,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Performs the PMD code analysis operation.
-     *
-     * @throws Exception when an exception occurs during the execution
      */
     @Override
-    public void execute() throws Exception {
+    public void execute() {
         if (project == null) {
             throw new IllegalArgumentException("ERROR: project required.");
         }
@@ -286,7 +272,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             config.setAnalysisCacheLocation(cache.toFile().getAbsolutePath());
         }
 
-        config.setDebug(debug);
         config.setFailOnViolation(failOnViolation);
 
         if (languageVersions != null) {
@@ -363,7 +348,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             for (var v : report.getViolations()) {
                 if (LOGGER.isLoggable(Level.WARNING)) {
                     LOGGER.log(Level.WARNING, "[{0}] {1}:{2}:\n\t{3} ({4})\n\t\t--> {5}",
-                            new Object[]{commandName, Paths.get(v.getFilename()).toUri(), v.getBeginLine(),
+                            new Object[]{commandName, Paths.get(v.getFileId().getFileName()).toUri(), v.getBeginLine(),
                                     v.getRule().getName(),
                                     v.getRule().getExternalInfoUrl() //TODO bug in PMD?
                                             .replace("${pmd.website.baseurl}",

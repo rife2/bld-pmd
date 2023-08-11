@@ -14,7 +14,6 @@ import static rife.bld.dependencies.Scope.runtime;
 import static rife.bld.dependencies.Scope.test;
 import static rife.bld.operations.JavadocOptions.DocLinkOption.NO_MISSING;
 
-
 public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
@@ -26,7 +25,7 @@ public class PmdOperationBuild extends Project {
         autoDownloadPurge = true;
         repositories = List.of(MAVEN_CENTRAL, RIFE2_RELEASES);
 
-        var pmd = version(7, 0, 0, "rc2");
+        var pmd = version(7, 0, 0, "rc3");
         var rife2 = version(1,7,0);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "rife2", rife2))
@@ -36,8 +35,8 @@ public class PmdOperationBuild extends Project {
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd))
                 .include(dependency("org.slf4j", "slf4j-simple", version(2,0,7)));
         scope(test)
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 9, 3)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 9, 3)))
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 0)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 0)))
                 .include(dependency("org.assertj:assertj-joda-time:2.2.0"));
 
         javadocOperation()

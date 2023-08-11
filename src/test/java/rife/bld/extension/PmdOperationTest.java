@@ -73,13 +73,6 @@ class PmdOperationTest {
     }
 
     @Test
-    void testDebug() {
-        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).debug(true);
-        var config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.isDebug()).isTrue();
-    }
-
-    @Test
     void testEncoding() {
         var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).encoding("UTF-16");
         var config = pmd.initConfiguration(COMMAND_NAME);
