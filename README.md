@@ -7,7 +7,9 @@
 [![Snapshot](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/snapshots/com/uwyn/rife2/bld-pmd/maven-metadata.xml?label=snapshot)](https://repo.rife2.com/#/snapshots/com/uwyn/rife2/bld-pmd)
 [![GitHub CI](https://github.com/rife2/bld-pmd/actions/workflows/bld.yml/badge.svg)](https://github.com/rife2/bld-pmd/actions/workflows/bld.yml)
 
-To check all source code using the [java quickstart rule](https://pmd.github.io/pmd/pmd_rules_java.html).
+To install, please refer to the [extensions documentation](https://github.com/rife2/bld/wiki/Extensions).
+
+To check all source code using the [java quickstart rule](https://pmd.github.io/pmd/pmd_rules_java.html), add the following to your build file
 
 ```java
 @BuildCommand
