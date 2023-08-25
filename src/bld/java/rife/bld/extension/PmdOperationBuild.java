@@ -28,9 +28,7 @@ public class PmdOperationBuild extends Project {
         repositories = List.of(MAVEN_CENTRAL, RIFE2_RELEASES);
 
         var pmd = version(7, 0, 0, "rc3");
-        var rife2 = version(1,7,0);
         scope(compile)
-                .include(dependency("com.uwyn.rife2", "rife2", rife2))
                 .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 2)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
