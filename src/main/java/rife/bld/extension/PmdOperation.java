@@ -26,10 +26,7 @@ import rife.bld.operations.AbstractOperation;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -159,6 +156,29 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation addRuleSet(String... ruleSet) {
         ruleSets.addAll(List.of(ruleSet));
+        return this;
+    }
+
+    /**
+     * Adds new rule set paths.
+     * <p>
+     * The built-in rule set paths are:
+     * <ul>
+     *     <li>{@code rulesets/java/quickstart.xml}</li>
+     *     <li>{@code category/java/bestpractices.xml}</li>
+     *     <li>{@code category/java/codestyle.xml}</li>
+     *     <li>{@code category/java/design.xml}</li>
+     *     <li>{@code category/java/documentation.xml}</li>
+     *     <li>{@code category/java/errorprone.xml}</li>
+     *     <li>{@code category/java/multithreading.xml}</li>
+     *     <li>{@code category/java/performance.xml}</li>
+     *     <li>{@code category/java/security.xml}</li>
+     * </ul>
+     *
+     * @see #ruleSets(Collection)
+     */
+    public PmdOperation addRuleSet(Collection<String> ruleSet) {
+        ruleSets.addAll(ruleSet);
         return this;
     }
 
@@ -418,6 +438,30 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     public PmdOperation ruleSets(String... ruleSet) {
         ruleSets.clear();
         ruleSets.addAll(Arrays.asList(ruleSet));
+        return this;
+    }
+
+    /**
+     * Sets the rule set path(s), disregarding any previously set paths.
+     * <p>
+     * The built-in rule set paths are:
+     * <ul>
+     *     <li>{@code rulesets/java/quickstart.xml}</li>
+     *     <li>{@code category/java/bestpractices.xml}</li>
+     *     <li>{@code category/java/codestyle.xml}</li>
+     *     <li>{@code category/java/design.xml}</li>
+     *     <li>{@code category/java/documentation.xml}</li>
+     *     <li>{@code category/java/errorprone.xml}</li>
+     *     <li>{@code category/java/multithreading.xml}</li>
+     *     <li>{@code category/java/performance.xml}</li>
+     *     <li>{@code category/java/security.xml}</li>
+     * </ul>
+     *
+     * @see #addRuleSet(Collection)
+     */
+    public PmdOperation ruleSets(Collection<String> ruleSet) {
+        ruleSets.clear();
+        ruleSets.addAll(ruleSet);
         return this;
     }
 
