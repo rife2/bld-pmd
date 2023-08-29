@@ -49,9 +49,9 @@ class PmdOperationTest {
     PmdOperation newPmdOperation() {
         final PmdOperation pmdOperation = new PmdOperation();
         pmdOperation.inputPaths(Path.of("src/main"), Path.of("src/test"));
-        pmdOperation.reportFile = Paths.get("build", COMMAND_NAME, "pmd-test-report.txt");
-        pmdOperation.cache = Paths.get("build", COMMAND_NAME, "pmd-cache");
-        pmdOperation.failOnViolation = false;
+        pmdOperation.reportFile_ = Paths.get("build", COMMAND_NAME, "pmd-test-report.txt");
+        pmdOperation.cache_ = Paths.get("build", COMMAND_NAME, "pmd-cache");
+        pmdOperation.failOnViolation_ = false;
         return pmdOperation;
     }
 
@@ -194,7 +194,7 @@ class PmdOperationTest {
     void testReportFormat() throws IOException {
         var pmd = newPmdOperation().ruleSets(ERROR_PRONE).reportFormat("xml").inputPaths(ERROR_PRONE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(ERROR_PRONE_ERRORS);
-        try (var br = Files.newBufferedReader(pmd.reportFile)) {
+        try (var br = Files.newBufferedReader(pmd.reportFile_)) {
             assertThat(br.readLine()).as("xml report").startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         }
     }

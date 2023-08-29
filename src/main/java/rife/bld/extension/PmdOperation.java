@@ -46,23 +46,23 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The input paths (source) list.
      */
-    final List<Path> inputPaths = new ArrayList<>();
+    final List<Path> inputPaths_ = new ArrayList<>();
     /**
      * The relative roots paths.
      */
-    final List<Path> relativizeRoots = new ArrayList<>();
+    final List<Path> relativizeRoots_ = new ArrayList<>();
     /**
      * The rule priority.
      */
-    final RulePriority rulePriority = RulePriority.LOW;
+    final RulePriority rulePriority_ = RulePriority.LOW;
     /**
      * The rule sets list.
      */
-    final List<String> ruleSets = new ArrayList<>();
+    final List<String> ruleSets_ = new ArrayList<>();
     /**
      * The cache location.
      */
-    Path cache;
+    Path cache_;
     /**
      * The encoding.
      */
@@ -70,51 +70,51 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The fail on violation toggle.
      */
-    boolean failOnViolation;
+    boolean failOnViolation_;
     /**
      * The forced language.
      */
-    LanguageVersion forcedLanguageVersion;
+    LanguageVersion forcedLanguageVersion_;
     /**
      * The path of the ignore file
      */
-    Path ignoreFile;
+    Path ignoreFile_;
     /**
      * The incremental analysis toggle.
      */
-    boolean incrementalAnalysis = true;
+    boolean incrementalAnalysis_ = true;
     /**
      * The input URI.
      */
-    URI inputUri;
+    URI inputUri_;
     /**
      * The default language version(s).
      */
-    List<LanguageVersion> languageVersions;
+    List<LanguageVersion> languageVersions_;
     /**
      * The path to the report page.
      */
-    Path reportFile;
+    Path reportFile_;
     /**
      * The report format.
      */
-    String reportFormat = "text";
+    String reportFormat_ = "text";
     /**
      * The show suppressed flag.
      */
-    boolean showSuppressed;
+    boolean showSuppressed_;
     /**
      * THe suppressed marker.
      */
-    String suppressedMarker = "NOPMD";
+    String suppressedMarker_ = "NOPMD";
     /**
      * The number of threads.
      */
-    int threads = 1;
+    int threads_ = 1;
     /**
      * The project reference.
      */
-    private BaseProject project;
+    private BaseProject project_;
 
     /**
      * Adds paths to source files, or directories containing source files to analyze.
@@ -122,7 +122,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Path...)
      */
     public PmdOperation addInputPath(Path... inputPath) {
-        inputPaths.addAll(List.of(inputPath));
+        inputPaths_.addAll(List.of(inputPath));
         return this;
     }
 
@@ -132,7 +132,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addRelativizeRoot(Path...)
      */
     public PmdOperation addRelativizeRoot(Path... relativeRoot) {
-        this.relativizeRoots.addAll(List.of(relativeRoot));
+        relativizeRoots_.addAll(List.of(relativeRoot));
         return this;
     }
 
@@ -155,7 +155,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ruleSets(String...)
      */
     public PmdOperation addRuleSet(String... ruleSet) {
-        ruleSets.addAll(List.of(ruleSet));
+        ruleSets_.addAll(List.of(ruleSet));
         return this;
     }
 
@@ -177,8 +177,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @see #ruleSets(Collection)
      */
-    public PmdOperation addRuleSet(Collection<String> ruleSet) {
-        ruleSets.addAll(ruleSet);
+    public PmdOperation addRuleSet(Collection<String> ruleSets) {
+        ruleSets_.addAll(ruleSets);
         return this;
     }
 
@@ -186,7 +186,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets the location of the cache file for incremental analysis.
      */
     public PmdOperation cache(Path cache) {
-        this.cache = cache;
+        cache_ = cache;
         return this;
     }
 
@@ -194,7 +194,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets the default language to be used for all input files.
      */
     public PmdOperation defaultLanguage(LanguageVersion... languageVersion) {
-        this.languageVersions.addAll(List.of(languageVersion));
+        languageVersions_.addAll(List.of(languageVersion));
         return this;
     }
 
@@ -204,7 +204,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
      */
     public PmdOperation encoding(String encoding) {
-        this.encoding = encoding;
+        encoding = encoding;
         return this;
     }
 
@@ -213,11 +213,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     @Override
     public void execute() {
-        if (project == null) {
+        if (project_ == null) {
             throw new IllegalArgumentException("ERROR: project required.");
         }
 
-        var commandName = project.getCurrentCommandName();
+        var commandName = project_.getCurrentCommandName();
         performPmdAnalysis(commandName, initConfiguration(commandName));
     }
 
@@ -225,7 +225,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets whether the build will continue on warnings.
      */
     public PmdOperation failOnViolation(boolean failOnViolation) {
-        this.failOnViolation = failOnViolation;
+        failOnViolation_ = failOnViolation;
         return this;
     }
 
@@ -233,7 +233,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Forces a language to be used for all input files, irrespective of file names.
      */
     public PmdOperation forceVersion(LanguageVersion languageVersion) {
-        this.forcedLanguageVersion = languageVersion;
+        forcedLanguageVersion_ = languageVersion;
         return this;
     }
 
@@ -255,11 +255,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * </ul>
      */
     public PmdOperation fromProject(BaseProject project) {
-        this.project = project;
+        project_ = project;
 
-        inputPaths.add(project.srcMainDirectory().toPath());
-        inputPaths.add(project.srcTestDirectory().toPath());
-        ruleSets.add(RULE_SET_DEFAULT);
+        inputPaths_.add(project.srcMainDirectory().toPath());
+        inputPaths_.add(project.srcTestDirectory().toPath());
+        ruleSets_.add(RULE_SET_DEFAULT);
         return this;
     }
 
@@ -267,7 +267,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets the path to the file containing a list of files to ignore, one path per line.
      */
     public PmdOperation ignoreFile(Path ignoreFile) {
-        this.ignoreFile = ignoreFile;
+        ignoreFile_ = ignoreFile;
         return this;
     }
 
@@ -275,7 +275,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Enables or disables incremental analysis.
      */
     public PmdOperation incrementalAnalysis(boolean incrementalAnalysis) {
-        this.incrementalAnalysis = incrementalAnalysis;
+        incrementalAnalysis_ = incrementalAnalysis;
         return this;
     }
 
@@ -285,55 +285,55 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     public PMDConfiguration initConfiguration(String commandName) {
         PMDConfiguration config = new PMDConfiguration();
 
-        if (cache == null && project != null && incrementalAnalysis) {
+        if (cache_ == null && project_ != null && incrementalAnalysis_) {
             config.setAnalysisCacheLocation(
-                    Paths.get(project.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-cache").toFile().getAbsolutePath());
-        } else if (cache != null) {
-            config.setAnalysisCacheLocation(cache.toFile().getAbsolutePath());
+                    Paths.get(project_.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-cache").toFile().getAbsolutePath());
+        } else if (cache_ != null) {
+            config.setAnalysisCacheLocation(cache_.toFile().getAbsolutePath());
         }
 
-        config.setFailOnViolation(failOnViolation);
+        config.setFailOnViolation(failOnViolation_);
 
-        if (languageVersions != null) {
-            config.setDefaultLanguageVersions(languageVersions);
+        if (languageVersions_ != null) {
+            config.setDefaultLanguageVersions(languageVersions_);
         }
 
-        if (forcedLanguageVersion != null) {
-            config.setForceLanguageVersion(forcedLanguageVersion);
+        if (forcedLanguageVersion_ != null) {
+            config.setForceLanguageVersion(forcedLanguageVersion_);
         }
 
-        if (ignoreFile != null) {
-            config.setIgnoreFilePath(ignoreFile);
+        if (ignoreFile_ != null) {
+            config.setIgnoreFilePath(ignoreFile_);
         }
 
-        config.setIgnoreIncrementalAnalysis(!incrementalAnalysis);
+        config.setIgnoreIncrementalAnalysis(!incrementalAnalysis_);
 
-        if (inputPaths.isEmpty()) {
+        if (inputPaths_.isEmpty()) {
             throw new IllegalArgumentException(commandName + ": InputPaths required.");
         } else {
-            config.setInputPathList(inputPaths);
+            config.setInputPathList(inputPaths_);
         }
 
-        if (inputUri != null) {
-            config.setInputUri(inputUri);
+        if (inputUri_ != null) {
+            config.setInputUri(inputUri_);
         }
 
-        config.setMinimumPriority(rulePriority);
+        config.setMinimumPriority(rulePriority_);
 
-        if (project != null) {
-            config.setReportFile(Objects.requireNonNullElseGet(reportFile,
-                    () -> Paths.get(project.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-report." + reportFormat)));
+        if (project_ != null) {
+            config.setReportFile(Objects.requireNonNullElseGet(reportFile_,
+                    () -> Paths.get(project_.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-report." + reportFormat_)));
         } else {
-            config.setReportFile(reportFile);
+            config.setReportFile(reportFile_);
         }
 
-        config.addRelativizeRoots(relativizeRoots);
-        config.setReportFormat(reportFormat);
-        config.setRuleSets(ruleSets);
-        config.setShowSuppressedViolations(showSuppressed);
+        config.addRelativizeRoots(relativizeRoots_);
+        config.setReportFormat(reportFormat_);
+        config.setRuleSets(ruleSets_);
+        config.setShowSuppressedViolations(showSuppressed_);
         config.setSourceEncoding(encoding);
-        config.setSuppressMarker(suppressedMarker);
-        config.setThreads(threads);
+        config.setSuppressMarker(suppressedMarker_);
+        config.setThreads(threads_);
 
         return config;
     }
@@ -345,8 +345,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPath(Path...)
      */
     public PmdOperation inputPaths(Path... inputPath) {
-        inputPaths.clear();
-        inputPaths.addAll(List.of(inputPath));
+        inputPaths_.clear();
+        inputPaths_.addAll(List.of(inputPath));
         return this;
     }
 
@@ -357,8 +357,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         var pmd = PmdAnalysis.create(config);
         var report = pmd.performAnalysisAndCollectReport();
         if (LOGGER.isLoggable(Level.INFO)) {
-            LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths});
-            LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets});
+            LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths_});
+            LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets_});
         }
         var numErrors = report.getViolations().size();
         if (numErrors > 0) {
@@ -406,8 +406,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addRelativizeRoot(Path...)
      */
     public PmdOperation relativizeRoots(Path... relativeRoot) {
-        this.relativizeRoots.clear();
-        this.relativizeRoots.addAll(List.of(relativeRoot));
+        relativizeRoots_.clear();
+        relativizeRoots_.addAll(List.of(relativeRoot));
         return this;
     }
 
@@ -415,7 +415,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets the output format of the analysis report. The default is {@code text}.
      */
     public PmdOperation reportFormat(String reportFormat) {
-        this.reportFormat = reportFormat;
+        reportFormat_ = reportFormat;
         return this;
     }
 
@@ -438,8 +438,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addRuleSet(String...)
      */
     public PmdOperation ruleSets(String... ruleSet) {
-        ruleSets.clear();
-        ruleSets.addAll(Arrays.asList(ruleSet));
+        ruleSets_.clear();
+        ruleSets_.addAll(Arrays.asList(ruleSet));
         return this;
     }
 
@@ -461,9 +461,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @see #addRuleSet(Collection)
      */
-    public PmdOperation ruleSets(Collection<String> ruleSet) {
-        ruleSets.clear();
-        ruleSets.addAll(ruleSet);
+    public PmdOperation ruleSets(Collection<String> ruleSets) {
+        ruleSets_.clear();
+        ruleSets_.addAll(ruleSets);
         return this;
     }
 
@@ -471,7 +471,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Enables or disables adding the suppressed rule violations to the report.
      */
     public PmdOperation showSuppressed(boolean showSuppressed) {
-        this.showSuppressed = showSuppressed;
+        showSuppressed_ = showSuppressed;
         return this;
     }
 
@@ -479,7 +479,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Specifies the comment token that marks lines which should be ignored. The default is {@code NOPMD}.
      */
     public PmdOperation suppressedMarker(String suppressedMarker) {
-        this.suppressedMarker = suppressedMarker;
+        suppressedMarker_ = suppressedMarker;
         return this;
     }
 
@@ -487,7 +487,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets the number of threads to be used. The default is {code 1}.
      */
     public PmdOperation threads(int threads) {
-        this.threads = threads;
+        threads_ = threads;
         return this;
     }
 
@@ -495,7 +495,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets the input URI to process for source code objects.
      */
     public PmdOperation uri(URI inputUri) {
-        this.inputUri = inputUri;
+        inputUri_ = inputUri;
         return this;
     }
 }
