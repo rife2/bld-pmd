@@ -368,7 +368,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             for (var v : report.getViolations()) {
                 if (LOGGER.isLoggable(Level.WARNING)) {
                     LOGGER.log(Level.WARNING, "[{0}] {1}:{2}:\n\t{3} ({4})\n\t\t--> {5}",
-                            new Object[]{commandName, Paths.get(v.getFileId().getFileName()).toUri(), v.getBeginLine(),
+                            new Object[]{commandName,
+                                    v.getFileId().getAbsolutePath(),
+                                    v.getBeginLine(),
                                     v.getRule().getName(),
                                     v.getRule().getExternalInfoUrl() //TODO bug in PMD?
                                             .replace("${pmd.website.baseurl}",
