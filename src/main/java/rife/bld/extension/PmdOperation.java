@@ -24,6 +24,8 @@ import rife.bld.BaseProject;
 import rife.bld.operations.AbstractOperation;
 
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -66,7 +68,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The encoding.
      */
-    String encoding = "UTF-8";
+    Charset encoding_ = StandardCharsets.UTF_8;
     /**
      * The fail on violation toggle.
      */
@@ -204,7 +206,18 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
      */
     public PmdOperation encoding(String encoding) {
-        encoding = encoding;
+        encoding_ = Charset.forName(encoding);
+        return this;
+    }
+
+    /**
+     * <p>Specifies the character set encoding of the source code files. The default is
+     * {@link StandardCharsets#UTF_8 UTF-8}.</p>
+     *
+     * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
+     */
+    public PmdOperation encoding(Charset encoding) {
+        encoding_ = encoding;
         return this;
     }
 
@@ -331,7 +344,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         config.setReportFormat(reportFormat_);
         config.setRuleSets(ruleSets_);
         config.setShowSuppressedViolations(showSuppressed_);
-        config.setSourceEncoding(encoding);
+        config.setSourceEncoding(encoding_);
         config.setSuppressMarker(suppressedMarker_);
         config.setThreads(threads_);
 
@@ -372,9 +385,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                                     v.getFileId().getAbsolutePath(),
                                     v.getBeginLine(),
                                     v.getRule().getName(),
-                                    v.getRule().getExternalInfoUrl() //TODO bug in PMD?
-                                            .replace("${pmd.website.baseurl}",
-                                            "https://docs.pmd-code.org/pmd-doc-7.0.0-rc1"),
+                                    v.getRule().getExternalInfoUrl(),
                                     v.getDescription()});
                 }
             }

@@ -16,6 +16,7 @@
 
 package rife.bld.extension;
 
+import net.sourceforge.pmd.PMDConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -74,9 +75,13 @@ class PmdOperationTest {
 
     @Test
     void testEncoding() {
-        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).encoding("UTF-16");
-        var config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getSourceEncoding()).isEqualTo(StandardCharsets.UTF_16);
+        PmdOperation pmd = newPmdOperation().ruleSets(CATEGORY_FOO).encoding("UTF-16");
+        PMDConfiguration config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getSourceEncoding()).isEqualTo(StandardCharsets.UTF_16).as("UTF-16");
+
+        pmd = pmd.encoding(StandardCharsets.ISO_8859_1);
+        config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getSourceEncoding()).isEqualTo(StandardCharsets.ISO_8859_1).as("ISO_8859");
     }
 
     @Test
