@@ -45,7 +45,7 @@ public class PmdOperationBuild extends Project {
 
         var pmd = version(7, 0, 0, "rc4");
         scope(compile)
-                .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 2)))
+                .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 5)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd))
