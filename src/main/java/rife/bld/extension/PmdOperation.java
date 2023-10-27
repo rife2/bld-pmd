@@ -385,7 +385,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                                     v.getFileId().getAbsolutePath(),
                                     v.getBeginLine(),
                                     v.getRule().getName(),
-                                    v.getRule().getExternalInfoUrl(),
+                                    v.getRule().getExternalInfoUrl() //TODO bug in PMD?
+                                            .replace("${pmd.website.baseurl}",
+                                            "https://docs.pmd-code.org/pmd-doc-7.0.0-rc4"),
                                     v.getDescription()});
                 }
             }
