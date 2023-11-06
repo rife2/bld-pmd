@@ -120,8 +120,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Adds paths to source files, or directories containing source files to analyze.
-     *
-     * @see #inputPaths(Path...)
      */
     public PmdOperation addInputPath(Path... inputPath) {
         inputPaths_.addAll(List.of(inputPath));
@@ -129,12 +127,26 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     */
+    public PmdOperation addInputPath(Collection<Path> inputPath) {
+        inputPaths_.addAll(inputPath);
+        return this;
+    }
+
+    /**
      * Adds several paths to shorten paths that are output in the report.
-     *
-     * @see #addRelativizeRoot(Path...)
      */
     public PmdOperation addRelativizeRoot(Path... relativeRoot) {
         relativizeRoots_.addAll(List.of(relativeRoot));
+        return this;
+    }
+
+    /**
+     * Adds several paths to shorten paths that are output in the report.
+     */
+    public PmdOperation addRelativizeRoot(Collection<Path> relativeRoot) {
+        relativizeRoots_.addAll(relativeRoot);
         return this;
     }
 
@@ -153,8 +165,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
-     *
-     * @see #ruleSets(String...)
      */
     public PmdOperation addRuleSet(String... ruleSet) {
         ruleSets_.addAll(List.of(ruleSet));
@@ -176,8 +186,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
-     *
-     * @see #ruleSets(Collection)
      */
     public PmdOperation addRuleSet(Collection<String> ruleSets) {
         ruleSets_.addAll(ruleSets);
@@ -197,6 +205,14 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation defaultLanguage(LanguageVersion... languageVersion) {
         languageVersions_.addAll(List.of(languageVersion));
+        return this;
+    }
+
+    /**
+     * Sets the default language to be used for all input files.
+     */
+    public PmdOperation defaultLanguage(Collection<LanguageVersion> languageVersion) {
+        languageVersions_.addAll(languageVersion);
         return this;
     }
 
@@ -354,12 +370,20 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the to source files, or directories containing source files to analyze.
      * Previously set paths will be disregarded.
-     *
-     * @see #addInputPath(Path...)
      */
     public PmdOperation inputPaths(Path... inputPath) {
         inputPaths_.clear();
         inputPaths_.addAll(List.of(inputPath));
+        return this;
+    }
+
+    /**
+     * Sets the to source files, or directories containing source files to analyze.
+     * Previously set paths will be disregarded.
+     */
+    public PmdOperation inputPaths(Collection<Path> inputPath) {
+        inputPaths_.clear();
+        inputPaths_.addAll(inputPath);
         return this;
     }
 
@@ -415,12 +439,19 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Sets several paths to shorten paths that are output in the report. Previous relative paths will be disregarded.
-     *
-     * @see #addRelativizeRoot(Path...)
      */
     public PmdOperation relativizeRoots(Path... relativeRoot) {
         relativizeRoots_.clear();
         relativizeRoots_.addAll(List.of(relativeRoot));
+        return this;
+    }
+
+    /**
+     * Sets several paths to shorten paths that are output in the report. Previous relative paths will be disregarded.
+     */
+    public PmdOperation relativizeRoots(Collection<Path> relativeRoot) {
+        relativizeRoots_.clear();
+        relativizeRoots_.addAll(relativeRoot);
         return this;
     }
 
@@ -447,8 +478,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
-     *
-     * @see #addRuleSet(String...)
      */
     public PmdOperation ruleSets(String... ruleSet) {
         ruleSets_.clear();
@@ -471,8 +500,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
-     *
-     * @see #addRuleSet(Collection)
      */
     public PmdOperation ruleSets(Collection<String> ruleSets) {
         ruleSets_.clear();
