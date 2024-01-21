@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,11 @@ public class PmdOperationBuild extends Project {
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd))
-                .include(dependency("org.slf4j", "slf4j-simple", version(2, 0, 9)));
+                .include(dependency("org.slf4j", "slf4j-simple", version(2, 0, 11)));
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 1)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 1)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 24, 2)));
+                .include(dependency("org.assertj", "assertj-core", version(3, 25, 1)));
 
         javadocOperation()
                 .javadocOptions()
@@ -69,13 +69,23 @@ public class PmdOperationBuild extends Project {
                 .artifactId("bld-pmd")
                 .description("bld Extension to Perform Static Code Analysis with PMD")
                 .url("https://github.com/rife2/bld-pmd")
-                .developer(new PublishDeveloper().id("ethauvin").name("Erik C. Thauvin").email("erik@thauvin.net")
-                        .url("https://erik.thauvin.net/"))
-                .license(new PublishLicense().name("The Apache License, Version 2.0")
-                        .url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-                .scm(new PublishScm().connection("scm:git:https://github.com/rife2/bld-pmd.git")
-                        .developerConnection("scm:git:git@github.com:rife2/bld-pmd.git")
-                        .url("https://github.com/rife2/bld-pmd"))
+                .developer(
+                        new PublishDeveloper()
+                                .id("ethauvin").name("Erik C. Thauvin")
+                                .email("erik@thauvin.net")
+                                .url("https://erik.thauvin.net/")
+                )
+                .license(
+                        new PublishLicense()
+                                .name("The Apache License, Version 2.0")
+                                .url("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                )
+                .scm(
+                        new PublishScm()
+                                .connection("scm:git:https://github.com/rife2/bld-pmd.git")
+                                .developerConnection("scm:git:git@github.com:rife2/bld-pmd.git")
+                                .url("https://github.com/rife2/bld-pmd")
+                )
                 .signKey(property("sign.key"))
                 .signPassphrase(property("sign.passphrase"));
     }
