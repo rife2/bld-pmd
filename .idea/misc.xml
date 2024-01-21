@@ -9,6 +9,7 @@
     <pattern value="rife.bld.extension.PmdOperation" method="addInputPath" />
     <pattern value="rife.bld.extension.PmdOperation" method="addRelativizeRoot" />
     <pattern value="rife.bld.extension.PmdOperation" method="addRuleSet" />
+    <pattern value="rife.bld.extension.PmdOperationBuild" method="jacoco" />
   </component>
   <component name="PDMPlugin">
     <option name="customRuleSets">
@@ -19,6 +20,7 @@
         <option value="$PROJECT_DIR$/../bld-testng/config/pmd.xml" />
         <option value="K:\java\semver\config\pmd.xml" />
         <option value="$PROJECT_DIR$/../bld-pitest/config/pmd.xml" />
+        <option value="$PROJECT_DIR$/../bld-generated-version/config/pmd.xml" />
       </list>
     </option>
     <option name="skipTestSources" value="false" />

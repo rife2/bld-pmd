@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,11 +77,11 @@ class PmdOperationTest {
     void testEncoding() {
         PmdOperation pmd = newPmdOperation().ruleSets(CATEGORY_FOO).encoding("UTF-16");
         PMDConfiguration config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getSourceEncoding()).isEqualTo(StandardCharsets.UTF_16).as("UTF-16");
+        assertThat(config.getSourceEncoding()).as("UTF-16").isEqualTo(StandardCharsets.UTF_16);
 
         pmd = pmd.encoding(StandardCharsets.ISO_8859_1);
         config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getSourceEncoding()).isEqualTo(StandardCharsets.ISO_8859_1).as("ISO_8859");
+        assertThat(config.getSourceEncoding()).as("ISO_8859").isEqualTo(StandardCharsets.ISO_8859_1);
     }
 
     @Test
