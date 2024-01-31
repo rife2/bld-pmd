@@ -43,7 +43,7 @@ public class PmdOperationBuild extends Project {
 
         var pmd = version(7, 0, 0, "rc4");
         scope(compile)
-                .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 5)))
+                .include(dependency("com.uwyn.rife2", "bld", version(1, 8, 0)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd))
@@ -51,7 +51,7 @@ public class PmdOperationBuild extends Project {
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 1)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 1)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 25, 1)));
+                .include(dependency("org.assertj", "assertj-core", version(3, 25, 2)));
 
         javadocOperation()
                 .javadocOptions()
