@@ -82,6 +82,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     Path ignoreFile_;
     /**
+     * The include line number toggle.
+     */
+    boolean includeLineNumber_ = true;
+    /**
      * The incremental analysis toggle.
      */
     boolean incrementalAnalysis_ = true;
@@ -301,6 +305,18 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * Enables or disables including the line number for the beginning of the violation in the analyzed source file URI.
+     * <p>
+     * While clicking on the URI works in IntelliJ IDEA, Visual Studio Code, etc.; it might not in terminal emulators.
+     * <p>
+     * Default: {@code TRUE}
+     */
+    public PmdOperation includeLineNumber(boolean includeLineNumber) {
+        includeLineNumber_ = includeLineNumber;
+        return this;
+    }
+
+    /**
      * Enables or disables incremental analysis.
      */
     public PmdOperation incrementalAnalysis(boolean incrementalAnalysis) {
@@ -399,14 +415,17 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         }
         var numErrors = report.getViolations().size();
         if (numErrors > 0) {
-            var msg = String.format(
-                    "[%s] %d rule violations were found. See the report at: %s", commandName, numErrors,
-                    config.getReportFilePath().toUri());
             for (var v : report.getViolations()) {
                 if (LOGGER.isLoggable(Level.WARNING)) {
-                    LOGGER.log(Level.WARNING, "[{0}] {1}:{2}:\n\t{3} ({4})\n\t\t--> {5}",
+                    final String msg;
+                    if (includeLineNumber_) {
+                        msg = "[{0}] {1}:{2}\n\t{3} ({4})\n\t\t--> {5}";
+                    } else {
+                        msg = "\"[{0}] {1} (line: {2})\\n\\t{3} ({4})\\n\\t\\t--> {5}\"";
+                    }
+                    LOGGER.log(Level.WARNING, msg,
                             new Object[]{commandName,
-                                    v.getFileId().getAbsolutePath(),
+                                    v.getFileId().getUriString(),
                                     v.getBeginLine(),
                                     v.getRule().getName(),
                                     v.getRule().getExternalInfoUrl() //TODO bug in PMD?
@@ -415,11 +434,15 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                                     v.getDescription()});
                 }
             }
+
+            var violations = String.format(
+                    "[%s] %d rule violations were found. See the report at: %s", commandName, numErrors,
+                    config.getReportFilePath().toUri());
             if (config.isFailOnViolation()) {
-                throw new RuntimeException(msg); // NOPMD
+                throw new RuntimeException(violations); // NOPMD
             } else {
                 if (LOGGER.isLoggable(Level.WARNING)) {
-                    LOGGER.warning(msg);
+                    LOGGER.warning(violations);
                 }
             }
         } else {
