@@ -7,8 +7,10 @@
     ],
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.project.referencedLibraries": [
-        "${HOME}bld-1.7.0-SNAPSHOT.jar",
+        "${HOME}/.bld/dist/bld-1.8.0.jar",
+        "lib/bld/*.jar",
         "lib/compile/*.jar",
+        "lib/provided/*.jar",
         "lib/runtime/*.jar",
         "lib/test/*.jar"
     ]
