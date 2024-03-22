@@ -43,7 +43,7 @@ class PmdOperationTest {
     static final int CODING_STYLE_ERRORS = 13;
     static final String COMMAND_NAME = "pmd";
     static final String ERROR_PRONE = "category/java/errorprone.xml";
-    static final int ERROR_PRONE_ERRORS = 8;
+    static final int ERROR_PRONE_ERRORS = 6;
     static final Path ERROR_PRONE_SAMPLE = Path.of("src/test/resources/java/ErrorProne.java");
     static final String TEST = "test";
 
@@ -126,7 +126,7 @@ class PmdOperationTest {
                 .as("code style").isEqualTo(CODING_STYLE_ERRORS);
         pmd = pmd.addRuleSet(ERROR_PRONE).addInputPath(ERROR_PRONE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
-                .as("code style + error prone").isEqualTo(34);
+                .as("code style + error prone").isEqualTo(29);
     }
 
     @Test

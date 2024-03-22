@@ -18,8 +18,8 @@ package rife.bld.extension;
 
 import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.PmdAnalysis;
-import net.sourceforge.pmd.RulePriority;
 import net.sourceforge.pmd.lang.LanguageVersion;
+import net.sourceforge.pmd.lang.rule.RulePriority;
 import rife.bld.BaseProject;
 import rife.bld.operations.AbstractOperation;
 
@@ -105,6 +105,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * The report format.
      */
     String reportFormat_ = "text";
+    /**
+     * The report properties.
+     */
+    Properties reportProperties_ = null;
     /**
      * The show suppressed flag.
      */
@@ -359,6 +363,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             config.setInputPathList(inputPaths_);
         }
 
+        if (reportProperties_ != null) {
+            config.setReportProperties(reportProperties_);
+        }
+
         if (inputUri_ != null) {
             config.setInputUri(inputUri_);
         }
@@ -367,7 +375,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
         if (project_ != null) {
             config.setReportFile(Objects.requireNonNullElseGet(reportFile_,
-                    () -> Paths.get(project_.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-report." + reportFormat_)));
+                    () -> Paths.get(project_.buildDirectory().getPath(),
+                            PMD_DIR, PMD_DIR + "-report." + reportFormat_)));
         } else {
             config.setReportFile(reportFile_);
         }
@@ -430,7 +439,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                                     v.getRule().getName(),
                                     v.getRule().getExternalInfoUrl() //TODO bug in PMD?
                                             .replace("${pmd.website.baseurl}",
-                                            "https://docs.pmd-code.org/pmd-doc-7.0.0-rc4"),
+                                            "https://docs.pmd-code.org/latest"),
                                     v.getDescription()});
                 }
             }
@@ -483,6 +492,14 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation reportFormat(String reportFormat) {
         reportFormat_ = reportFormat;
+        return this;
+    }
+
+    /**
+     * Set the Report properties. These are used to create the Renderer.
+     */
+    public PmdOperation reportProperties(Properties reportProperties) {
+        reportProperties_ = reportProperties;
         return this;
     }
 
