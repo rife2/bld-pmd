@@ -10,7 +10,7 @@
 
 To install, please refer to the [extensions documentation](https://github.com/rife2/bld/wiki/Extensions).
 
-To check all source code using the [Java Quickstart](https://pmd.github.io/pmd/pmd_rules_java.html) configuration, add the following to your build file:
+To check all source code using the [Java Quickstart](https://docs.pmd-code.org/latest/pmd_rules_java.html) configuration, add the following to your build file:
 
 ```java
 @BuildCommand(summary = "Checks source code with PMD")
@@ -25,7 +25,7 @@ public void pmd() throws Exception {
 ./bld pmd test
 ```
 
-To check the main source directory using a custom ruleset, [Java Error Prone](https://pmd.github.io/pmd/pmd_rules_java.html#error-prone) configuration, and failing on any violation.
+To check the main source directory using a custom ruleset, [Java Error Prone](https://docs.pmd-code.org/latest/pmd_rules_java.html#error-prone) configuration, and failing on any violation.
 
 ```java
 @BuildCommand(value = "pmd-main", summary = "Checks main source code with PMD")
@@ -33,7 +33,7 @@ public void pmdMain() throws Exception {
     new PmdOperation()
             .fromProject(this)
             .failOnViolation(true)
-            .inputPaths(this.srcMainDirectory().toPath())
+            .inputPaths(srcMainDirectory().toPath())
             .ruleSets("config/pmd.xml", "category/java/errorprone.xml")
             .execute();
 }
