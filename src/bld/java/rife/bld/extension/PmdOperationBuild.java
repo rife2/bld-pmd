@@ -34,14 +34,15 @@ public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(1, 0, 0, "SNAPSHOT");
+        version = version(1, 0, 0);
 
         javaRelease = 17;
+
         downloadSources = true;
         autoDownloadPurge = true;
         repositories = List.of(MAVEN_CENTRAL, RIFE2_RELEASES);
 
-        var pmd = version(7, 1, 0);
+        var pmd = version(7, 2, 0);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld", version(1, 9, 1)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
@@ -51,7 +52,7 @@ public class PmdOperationBuild extends Project {
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 2)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 2)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 25, 3)));
+                .include(dependency("org.assertj", "assertj-core", version(3, 26, 0)));
 
         javadocOperation()
                 .javadocOptions()
