@@ -430,7 +430,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                     if (includeLineNumber_) {
                         msg = "[{0}] {1}:{2}\n\t{3} ({4})\n\t\t--> {5}";
                     } else {
-                        msg = "\"[{0}] {1} (line: {2})\\n\\t{3} ({4})\\n\\t\\t--> {5}\"";
+                        msg = "[{0}] {1} (line: {2})\n\t{3} ({4})\n\t\t--> {5}";
                     }
                     LOGGER.log(Level.WARNING, msg,
                             new Object[]{commandName,
