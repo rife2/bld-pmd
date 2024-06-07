@@ -34,7 +34,7 @@ public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(1, 0, 0);
+        version = version(1, 0, 1);
 
         javaRelease = 17;
 
