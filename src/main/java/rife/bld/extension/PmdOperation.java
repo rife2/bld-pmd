@@ -23,6 +23,7 @@ import net.sourceforge.pmd.lang.rule.RulePriority;
 import rife.bld.BaseProject;
 import rife.bld.operations.AbstractOperation;
 
+import java.io.File;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +42,8 @@ import java.util.logging.Logger;
 public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The default rule set.
+     * <p>
+     * Set to: {@code rulesets/java/quickstart.xml}
      */
     public static final String RULE_SET_DEFAULT = "rulesets/java/quickstart.xml";
     private static final Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
@@ -48,115 +51,83 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The input paths (source) list.
      */
-    final List<Path> inputPaths_ = new ArrayList<>();
+    private final Collection<Path> inputPaths_ = new ArrayList<>();
     /**
      * The relative roots paths.
      */
-    final List<Path> relativizeRoots_ = new ArrayList<>();
-    /**
-     * The rule priority.
-     */
-    final RulePriority rulePriority_ = RulePriority.LOW;
+    private final Collection<Path> relativizeRoots_ = new ArrayList<>();
     /**
      * The rule sets list.
      */
-    final List<String> ruleSets_ = new ArrayList<>();
+    private final Collection<String> ruleSets_ = new ArrayList<>();
     /**
      * The cache location.
      */
-    Path cache_;
+    private Path cache_;
     /**
      * The encoding.
      */
-    Charset encoding_ = StandardCharsets.UTF_8;
+    private Charset encoding_ = StandardCharsets.UTF_8;
     /**
      * The fail on violation toggle.
      */
-    boolean failOnViolation_;
+    private boolean failOnViolation_;
     /**
      * The forced language.
      */
-    LanguageVersion forcedLanguageVersion_;
+    private LanguageVersion forcedLanguageVersion_;
     /**
      * The path of the ignore file
      */
-    Path ignoreFile_;
+    private Path ignoreFile_;
     /**
      * The include line number toggle.
      */
-    boolean includeLineNumber_ = true;
+    private boolean includeLineNumber_ = true;
     /**
      * The incremental analysis toggle.
      */
-    boolean incrementalAnalysis_ = true;
+    private boolean incrementalAnalysis_ = true;
     /**
      * The input URI.
      */
-    URI inputUri_;
+    private URI inputUri_;
     /**
      * The default language version(s).
      */
-    List<LanguageVersion> languageVersions_;
-    /**
-     * The path to the report page.
-     */
-    Path reportFile_;
-    /**
-     * The report format.
-     */
-    String reportFormat_ = "text";
-    /**
-     * The report properties.
-     */
-    Properties reportProperties_ = null;
-    /**
-     * The show suppressed flag.
-     */
-    boolean showSuppressed_;
-    /**
-     * THe suppressed marker.
-     */
-    String suppressedMarker_ = "NOPMD";
-    /**
-     * The number of threads.
-     */
-    int threads_ = 1;
+    private Collection<LanguageVersion> languageVersions_ = new ArrayList<>();
     /**
      * The project reference.
      */
     private BaseProject project_;
-
     /**
-     * Adds paths to source files, or directories containing source files to analyze.
+     * The path to the report page.
      */
-    public PmdOperation addInputPath(Path... inputPath) {
-        inputPaths_.addAll(List.of(inputPath));
-        return this;
-    }
-
+    private Path reportFile_;
     /**
-     * Adds paths to source files, or directories containing source files to analyze.
+     * The report format.
      */
-    public PmdOperation addInputPath(Collection<Path> inputPath) {
-        inputPaths_.addAll(inputPath);
-        return this;
-    }
-
+    private String reportFormat_ = "text";
     /**
-     * Adds several paths to shorten paths that are output in the report.
+     * The report properties.
      */
-    public PmdOperation addRelativizeRoot(Path... relativeRoot) {
-        relativizeRoots_.addAll(List.of(relativeRoot));
-        return this;
-    }
-
+    private Properties reportProperties_;
     /**
-     * Adds several paths to shorten paths that are output in the report.
+     * The rule priority.
      */
-    public PmdOperation addRelativizeRoot(Collection<Path> relativeRoot) {
-        relativizeRoots_.addAll(relativeRoot);
-        return this;
-    }
+    private RulePriority rulePriority_ = RulePriority.LOW;
+    /**
+     * The show suppressed flag.
+     */
+    private boolean showSuppressed_;
+    /**
+     * THe suppressed marker.
+     */
+    private String suppressedMarker_ = "NOPMD";
+    /**
+     * The number of threads.
+     */
+    private int threads_ = 1;
 
     /**
      * Adds new rule set paths.
@@ -173,6 +144,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
+     *
+     * @param ruleSet one or more rule set
+     * @return this operation
+     * @see #ruleSets(String...)
      */
     public PmdOperation addRuleSet(String... ruleSet) {
         ruleSets_.addAll(List.of(ruleSet));
@@ -194,9 +169,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
+     *
+     * @param ruleSet one or more rule set
+     * @return this operation
+     * @see #ruleSets(Collection
      */
-    public PmdOperation addRuleSet(Collection<String> ruleSets) {
-        ruleSets_.addAll(ruleSets);
+    public PmdOperation addRuleSet(Collection<String> ruleSet) {
+        ruleSets_.addAll(ruleSet);
         return this;
     }
 
@@ -209,17 +188,23 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the default language to be used for all input files.
+     * Sets the default language version to be used for all input files.
+     *
+     * @param languageVersion one or more language version
+     * @return this operation
      */
-    public PmdOperation defaultLanguage(LanguageVersion... languageVersion) {
+    public PmdOperation defaultLanguageVersions(LanguageVersion... languageVersion) {
         languageVersions_.addAll(List.of(languageVersion));
         return this;
     }
 
     /**
-     * Sets the default language to be used for all input files.
+     * Sets the default language version to be used for all input files.
+     *
+     * @param languageVersion the language versions
+     * @return this operation
      */
-    public PmdOperation defaultLanguage(Collection<LanguageVersion> languageVersion) {
+    public PmdOperation defaultLanguageVersions(Collection<LanguageVersion> languageVersion) {
         languageVersions_.addAll(languageVersion);
         return this;
     }
@@ -268,8 +253,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Forces a language to be used for all input files, irrespective of file names.
+     *
+     * @param languageVersion the language version
+     * @return this operation
      */
-    public PmdOperation forceVersion(LanguageVersion languageVersion) {
+    public PmdOperation forceLanguageVersion(LanguageVersion languageVersion) {
         forcedLanguageVersion_ = languageVersion;
         return this;
     }
@@ -290,21 +278,48 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * <li>ruleSets={@code [rulesets/java/quickstart.xml]}</li>
      * <li>suppressedMarker={@code NOPMD}</li>
      * </ul>
+     *
+     * @param project the project
+     * @return this operation
      */
     public PmdOperation fromProject(BaseProject project) {
         project_ = project;
 
-        inputPaths_.add(project.srcMainDirectory().toPath());
-        inputPaths_.add(project.srcTestDirectory().toPath());
+        inputPaths(project.srcMainDirectory(), project.srcTestDirectory());
         ruleSets_.add(RULE_SET_DEFAULT);
         return this;
     }
 
     /**
      * Sets the path to the file containing a list of files to ignore, one path per line.
+     *
+     * @param ignoreFile the ignore file path
+     * @return this operation
      */
     public PmdOperation ignoreFile(Path ignoreFile) {
         ignoreFile_ = ignoreFile;
+        return this;
+    }
+
+    /**
+     * Sets the path to the file containing a list of files to ignore, one path per line.
+     *
+     * @param ignoreFile the ignore file path
+     * @return this operation
+     */
+    public PmdOperation ignoreFile(File ignoreFile) {
+        ignoreFile_ = ignoreFile.toPath();
+        return this;
+    }
+
+    /**
+     * Sets the path to the file containing a list of files to ignore, one path per line.
+     *
+     * @param ignoreFile the ignore file path
+     * @return this operation
+     */
+    public PmdOperation ignoreFile(String ignoreFile) {
+        ignoreFile_ = Paths.get(ignoreFile);
         return this;
     }
 
@@ -330,6 +345,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Creates a new initialized configuration.
+     *
+     * @param commandName the command name
+     * @return this operation
      */
     public PMDConfiguration initConfiguration(String commandName) {
         PMDConfiguration config = new PMDConfiguration();
@@ -344,7 +362,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         config.setFailOnViolation(failOnViolation_);
 
         if (languageVersions_ != null) {
-            config.setDefaultLanguageVersions(languageVersions_);
+            config.setDefaultLanguageVersions(languageVersions_.stream().toList());
         }
 
         if (forcedLanguageVersion_ != null) {
@@ -360,9 +378,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         if (inputPaths_.isEmpty()) {
             throw new IllegalArgumentException(commandName + ": InputPaths required.");
         } else {
-            config.setInputPathList(inputPaths_);
+            config.setInputPathList(inputPaths_.stream().toList());
         }
-
         if (reportProperties_ != null) {
             config.setReportProperties(reportProperties_);
         }
@@ -381,9 +398,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             config.setReportFile(reportFile_);
         }
 
-        config.addRelativizeRoots(relativizeRoots_);
+        config.addRelativizeRoots(relativizeRoots_.stream().toList());
         config.setReportFormat(reportFormat_);
-        config.setRuleSets(ruleSets_);
+        config.setRuleSets(ruleSets_.stream().toList());
         config.setShowSuppressedViolations(showSuppressed_);
         config.setSourceEncoding(encoding_);
         config.setSuppressMarker(suppressedMarker_);
@@ -393,8 +410,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the to source files, or directories containing source files to analyze.
-     * Previously set paths will be disregarded.
+     * Sets paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #addInputPaths(Path...) 
      */
     public PmdOperation inputPaths(Path... inputPath) {
         inputPaths_.clear();
@@ -403,18 +423,154 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the to source files, or directories containing source files to analyze.
-     * Previously set paths will be disregarded.
+     * Sets paths to source files, or directories containing source files to analyze.
+     * <p>
+     * Previous entries are disregarded.
+     *
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #addInputPaths(File...) 
+     */
+    public PmdOperation inputPaths(File... inputPath) {
+        inputPaths_.clear();
+        inputPaths_.addAll(Arrays.stream(inputPath).map(File::toPath).toList());
+        return this;
+    }
+
+    /**
+     * Sets paths to source files, or directories containing source files to analyze.
+     * <p>
+     * Previous entries are disregarded.
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #addInputPaths(String...) 
+     */
+    public PmdOperation inputPaths(String... inputPath) {
+        inputPaths_.clear();
+        inputPaths_.addAll(Arrays.stream(inputPath).map(Paths::get).toList());
+        return this;
+    }
+
+    /**
+     * Sets  paths to source files, or directories containing source files to analyze.
+     * <p>
+     * Previous entries are disregarded.
+     * @param inputPath the input paths
+     * @return this operation
+     * @see #addInputPaths(Collection) 
      */
     public PmdOperation inputPaths(Collection<Path> inputPath) {
         inputPaths_.clear();
         inputPaths_.addAll(inputPath);
         return this;
     }
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.\
+     *
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #inputPaths(Path...) 
+     */
+    public PmdOperation addInputPaths(Path... inputPath) {
+        inputPaths_.addAll(List.of(inputPath));
+        return this;
+    }
+
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #inputPaths(File...) 
+     */
+    public PmdOperation addInputPaths(File... inputPath) {
+        inputPaths_.addAll(Arrays.stream(inputPath).map(File::toPath).toList());
+        return this;
+    }
+
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #addInputPaths(String...) 
+     */
+    public PmdOperation addInputPaths(String... inputPath) {
+        inputPaths_.addAll(Arrays.stream(inputPath).map(Paths::get).toList());
+        return this;
+    }
+
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath the input paths
+     * @return this operation
+     * @see #inputPaths(Collection) 
+     */
+    public PmdOperation addInputPaths(Collection<Path> inputPath) {
+        inputPaths_.addAll(inputPath);
+        return this;
+    }
+
+    /**
+     * Returns paths to source files, or directories containing source files to analyze.
+     *
+     * @return the input paths
+     */
+    public Collection<Path> inputPaths() {
+        return inputPaths_;
+    }
+
+    /**
+     * Sets the default language versions.
+     *
+     * @param languageVersion one or more language versions
+     * @return this operation
+     */
+    public PmdOperation languageVersions(LanguageVersion... languageVersion) {
+        languageVersions_.addAll(List.of(languageVersion));
+        return this;
+    }
+
+    /**
+     * Sets the default language versions.
+     *
+     * @param languageVersions the language versions
+     * @return this operation
+     */
+    public PmdOperation languageVersions(Collection<LanguageVersion> languageVersions) {
+        languageVersions_ = languageVersions;
+        return this;
+    }
+
+    /**
+     * Returns the default language versions.
+     *
+     * @return the language versions
+     */
+    public Collection<LanguageVersion> languageVersions() {
+        return languageVersions_;
+    }
+
+    /**
+     * Sets the minimum priority threshold when loading Rules from RuleSets.
+     *
+     * @return this operation
+     */
+    public PmdOperation minimumPriority(RulePriority priority) {
+        rulePriority_ = priority;
+        return this;
+    }
 
     /**
      * Performs the PMD analysis with the given config.
+     *
+     * @param commandName the command name
+     * @param config      the configuration
+     * @return the number of errors
+     * @throws RuntimeException if an error occurs
      */
+    @SuppressWarnings({"PMD.CloseResource", "PMD.AvoidInstantiatingObjectsInLoops"})
     public int performPmdAnalysis(String commandName, PMDConfiguration config) throws RuntimeException {
         var pmd = PmdAnalysis.create(config);
         var report = pmd.performAnalysisAndCollectReport();
@@ -470,25 +626,105 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets several paths to shorten paths that are output in the report. Previous relative paths will be disregarded.
+     * Adds several paths to shorten paths that are output in the report.
+     *
+     * @param relativeRoot one or more relative root paths
+     * @return this operations
      */
     public PmdOperation relativizeRoots(Path... relativeRoot) {
-        relativizeRoots_.clear();
         relativizeRoots_.addAll(List.of(relativeRoot));
         return this;
     }
 
     /**
-     * Sets several paths to shorten paths that are output in the report. Previous relative paths will be disregarded.
+     * Adds several paths to shorten paths that are output in the report.
+     *
+     * @param relativeRoot one or more relative root paths
+     * @return this operations
+     */
+    public PmdOperation relativizeRoots(File... relativeRoot) {
+        relativizeRoots_.addAll(Arrays.stream(relativeRoot).map(File::toPath).toList());
+        return this;
+    }
+
+    /**
+     * Adds several paths to shorten paths that are output in the report.
+     *
+     * @param relativeRoot one or more relative root paths
+     * @return this operations
+     */
+    public PmdOperation relativizeRoots(String... relativeRoot) {
+        relativizeRoots_.addAll(Arrays.stream(relativeRoot).map(Paths::get).toList());
+        return this;
+    }
+
+    /**
+     * Adds several paths to shorten paths that are output in the report.
+     *
+     * @param relativeRoot the relative root paths
+     * @return this operations
      */
     public PmdOperation relativizeRoots(Collection<Path> relativeRoot) {
-        relativizeRoots_.clear();
         relativizeRoots_.addAll(relativeRoot);
         return this;
     }
 
     /**
+     * Returns paths to shorten paths that are output in the report.
+     *
+     * @return the relative root paths
+     */
+    public Collection<Path> relativizeRoots() {
+        return relativizeRoots_;
+    }
+
+    /**
+     * Sets the path to the report page.
+     *
+     * @param reportFile the report file path
+     * @return this operation
+     */
+    public PmdOperation reportFile(Path reportFile) {
+        reportFile_ = reportFile;
+        return this;
+    }
+
+    /**
+     * Sets the path to the report page.
+     *
+     * @param reportFile the report file path
+     * @return this operation
+     */
+    public PmdOperation reportFile(File reportFile) {
+        reportFile_ = reportFile.toPath();
+        return this;
+    }
+
+    /**
+     * Sets the path to the report page.
+     *
+     * @param reportFile the report file path
+     * @return this operation
+     */
+    public PmdOperation reportFile(String reportFile) {
+        reportFile_ = Paths.get(reportFile);
+        return this;
+    }
+
+    /**
+     * Returns the path to the report page.
+     *
+     * @return the path
+     */
+    public Path reportFile() {
+        return reportFile_;
+    }
+
+    /**
      * Sets the output format of the analysis report. The default is {@code text}.
+     *
+     * @param reportFormat the report format
+     * @return this operation
      */
     public PmdOperation reportFormat(String reportFormat) {
         reportFormat_ = reportFormat;
@@ -496,7 +732,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Set the Report properties. These are used to create the Renderer.
+     * Sets the Report properties. These are used to create the Renderer.
+     *
+     * @param reportProperties the report properties
+     * @return this operation
      */
     public PmdOperation reportProperties(Properties reportProperties) {
         reportProperties_ = reportProperties;
@@ -504,7 +743,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the rule set path(s), disregarding any previously set paths.
+     * Sets new rule set paths, disregarding any previous entries.
      * <p>
      * The built-in rule set paths are:
      * <ul>
@@ -518,15 +757,19 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
+     *
+     * @param ruleSet one or more rule set
+     * @return this operation
+     * @see #addRuleSet(String...)
      */
     public PmdOperation ruleSets(String... ruleSet) {
         ruleSets_.clear();
-        ruleSets_.addAll(Arrays.asList(ruleSet));
+        ruleSets_.addAll(List.of(ruleSet));
         return this;
     }
 
     /**
-     * Sets the rule set path(s), disregarding any previously set paths.
+     * Sets new rule set paths, disregarding any previous entries.
      * <p>
      * The built-in rule set paths are:
      * <ul>
@@ -540,15 +783,31 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/performance.xml}</li>
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
+     *
+     * @param ruleSet one or more rule set
+     * @return this operation
+     * @see #addRuleSet(Collection)
      */
-    public PmdOperation ruleSets(Collection<String> ruleSets) {
+    public PmdOperation ruleSets(Collection<String> ruleSet) {
         ruleSets_.clear();
-        ruleSets_.addAll(ruleSets);
+        ruleSets_.addAll(ruleSet);
         return this;
+    }
+
+    /**
+     * Returns the rule set paths.
+     *
+     * @return the rule sets
+     */
+    public Collection<String> ruleSets() {
+        return ruleSets_;
     }
 
     /**
      * Enables or disables adding the suppressed rule violations to the report.
+     *
+     * @param showSuppressed {@code true} or {@code false}
+     * @return this operation
      */
     public PmdOperation showSuppressed(boolean showSuppressed) {
         showSuppressed_ = showSuppressed;
@@ -557,6 +816,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Specifies the comment token that marks lines which should be ignored. The default is {@code NOPMD}.
+     *
+     * @param suppressedMarker the suppressed marker
+     * @return this operation
      */
     public PmdOperation suppressedMarker(String suppressedMarker) {
         suppressedMarker_ = suppressedMarker;
@@ -564,7 +826,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the number of threads to be used. The default is {code 1}.
+     * Sets the number of threads to be used. The default is {@code 1}.
+     *
+     * @param threads the number of threads
+     * @return this operation
      */
     public PmdOperation threads(int threads) {
         threads_ = threads;
@@ -573,6 +838,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Sets the input URI to process for source code objects.
+     *
+     * @param inputUri the input URI
+     * @return this operation
      */
     public PmdOperation uri(URI inputUri) {
         inputUri_ = inputUri;
