@@ -130,6 +130,54 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     private int threads_ = 1;
 
     /**
+     * Adds paths to source files, or directories containing source files to analyze.\
+     *
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #inputPaths(Path...)
+     */
+    public PmdOperation addInputPaths(Path... inputPath) {
+        inputPaths_.addAll(List.of(inputPath));
+        return this;
+    }
+
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #inputPaths(File...)
+     */
+    public PmdOperation addInputPaths(File... inputPath) {
+        inputPaths_.addAll(Arrays.stream(inputPath).map(File::toPath).toList());
+        return this;
+    }
+
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #addInputPaths(String...)
+     */
+    public PmdOperation addInputPaths(String... inputPath) {
+        inputPaths_.addAll(Arrays.stream(inputPath).map(Paths::get).toList());
+        return this;
+    }
+
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath a collection of input paths
+     * @return this operation
+     * @see #inputPaths(Collection)
+     */
+    public PmdOperation addInputPaths(Collection<Path> inputPath) {
+        inputPaths_.addAll(inputPath);
+        return this;
+    }
+
+    /**
      * Adds new rule set paths.
      * <p>
      * The built-in rule set paths are:
@@ -170,7 +218,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
      *
-     * @param ruleSet one or more rule set
+     * @param ruleSet a collection of rule set paths
      * @return this operation
      * @see #ruleSets(Collection
      */
@@ -201,7 +249,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the default language version to be used for all input files.
      *
-     * @param languageVersion the language versions
+     * @param languageVersion a collection language versions
      * @return this operation
      */
     public PmdOperation defaultLanguageVersions(Collection<LanguageVersion> languageVersion) {
@@ -414,7 +462,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPath one or more paths
      * @return this operation
-     * @see #addInputPaths(Path...) 
+     * @see #addInputPaths(Path...)
      */
     public PmdOperation inputPaths(Path... inputPath) {
         inputPaths_.clear();
@@ -429,7 +477,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPath one or more paths
      * @return this operation
-     * @see #addInputPaths(File...) 
+     * @see #addInputPaths(File...)
      */
     public PmdOperation inputPaths(File... inputPath) {
         inputPaths_.clear();
@@ -441,9 +489,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets paths to source files, or directories containing source files to analyze.
      * <p>
      * Previous entries are disregarded.
+     *
      * @param inputPath one or more paths
      * @return this operation
-     * @see #addInputPaths(String...) 
+     * @see #addInputPaths(String...)
      */
     public PmdOperation inputPaths(String... inputPath) {
         inputPaths_.clear();
@@ -455,59 +504,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Sets  paths to source files, or directories containing source files to analyze.
      * <p>
      * Previous entries are disregarded.
-     * @param inputPath the input paths
+     *
+     * @param inputPath a collection of input paths
      * @return this operation
-     * @see #addInputPaths(Collection) 
+     * @see #addInputPaths(Collection)
      */
     public PmdOperation inputPaths(Collection<Path> inputPath) {
         inputPaths_.clear();
-        inputPaths_.addAll(inputPath);
-        return this;
-    }
-    /**
-     * Adds paths to source files, or directories containing source files to analyze.\
-     *
-     * @param inputPath one or more paths
-     * @return this operation
-     * @see #inputPaths(Path...) 
-     */
-    public PmdOperation addInputPaths(Path... inputPath) {
-        inputPaths_.addAll(List.of(inputPath));
-        return this;
-    }
-
-    /**
-     * Adds paths to source files, or directories containing source files to analyze.
-     *
-     * @param inputPath one or more paths
-     * @return this operation
-     * @see #inputPaths(File...) 
-     */
-    public PmdOperation addInputPaths(File... inputPath) {
-        inputPaths_.addAll(Arrays.stream(inputPath).map(File::toPath).toList());
-        return this;
-    }
-
-    /**
-     * Adds paths to source files, or directories containing source files to analyze.
-     *
-     * @param inputPath one or more paths
-     * @return this operation
-     * @see #addInputPaths(String...) 
-     */
-    public PmdOperation addInputPaths(String... inputPath) {
-        inputPaths_.addAll(Arrays.stream(inputPath).map(Paths::get).toList());
-        return this;
-    }
-
-    /**
-     * Adds paths to source files, or directories containing source files to analyze.
-     *
-     * @param inputPath the input paths
-     * @return this operation
-     * @see #inputPaths(Collection) 
-     */
-    public PmdOperation addInputPaths(Collection<Path> inputPath) {
         inputPaths_.addAll(inputPath);
         return this;
     }
@@ -535,7 +538,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the default language versions.
      *
-     * @param languageVersions the language versions
+     * @param languageVersions a collection language versions
      * @return this operation
      */
     public PmdOperation languageVersions(Collection<LanguageVersion> languageVersions) {
@@ -661,7 +664,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Adds several paths to shorten paths that are output in the report.
      *
-     * @param relativeRoot the relative root paths
+     * @param relativeRoot a collection of relative root paths
      * @return this operations
      */
     public PmdOperation relativizeRoots(Collection<Path> relativeRoot) {
@@ -784,7 +787,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *     <li>{@code category/java/security.xml}</li>
      * </ul>
      *
-     * @param ruleSet one or more rule set
+     * @param ruleSet a collection of rule set paths
      * @return this operation
      * @see #addRuleSet(Collection)
      */
