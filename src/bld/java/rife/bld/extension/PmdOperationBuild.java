@@ -16,13 +16,11 @@
 
 package rife.bld.extension;
 
-import rife.bld.BuildCommand;
 import rife.bld.Project;
 import rife.bld.publish.PublishDeveloper;
 import rife.bld.publish.PublishLicense;
 import rife.bld.publish.PublishScm;
 
-import java.io.IOException;
 import java.util.List;
 
 import static rife.bld.dependencies.Repository.MAVEN_CENTRAL;
@@ -93,12 +91,5 @@ public class PmdOperationBuild extends Project {
 
     public static void main(String[] args) {
         new PmdOperationBuild().start(args);
-    }
-
-    @BuildCommand(summary = "Generates JaCoCo Reports")
-    public void jacoco() throws IOException {
-        new JacocoReportOperation()
-                .fromProject(this)
-                .execute();
     }
 }
