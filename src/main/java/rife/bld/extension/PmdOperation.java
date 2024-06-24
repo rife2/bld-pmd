@@ -22,6 +22,7 @@ import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.rule.RulePriority;
 import rife.bld.BaseProject;
 import rife.bld.operations.AbstractOperation;
+import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
 import java.net.URI;
@@ -282,9 +283,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Performs the PMD code analysis operation.
      */
     @Override
-    public void execute() {
+    public void execute() throws Exception {
         if (project_ == null) {
-            throw new IllegalArgumentException("ERROR: project required.");
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.log(Level.SEVERE, "A project is required to run this operation.");
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
 
         var commandName = project_.getCurrentCommandName();
@@ -574,17 +578,17 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @throws RuntimeException if an error occurs
      */
     @SuppressWarnings({"PMD.CloseResource", "PMD.AvoidInstantiatingObjectsInLoops"})
-    public int performPmdAnalysis(String commandName, PMDConfiguration config) throws RuntimeException {
+    public int performPmdAnalysis(String commandName, PMDConfiguration config) throws ExitStatusException {
         var pmd = PmdAnalysis.create(config);
         var report = pmd.performAnalysisAndCollectReport();
-        if (LOGGER.isLoggable(Level.INFO)) {
+        if (LOGGER.isLoggable(Level.INFO) && !silent()) {
             LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths_});
             LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets_});
         }
         var numErrors = report.getViolations().size();
         if (numErrors > 0) {
             for (var v : report.getViolations()) {
-                if (LOGGER.isLoggable(Level.WARNING)) {
+                if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
                     final String msg;
                     if (includeLineNumber_) {
                         msg = "[{0}] {1}:{2}\n\t{3} ({4})\n\t\t--> {5}";
@@ -607,11 +611,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                     "[%s] %d rule violations were found. See the report at: %s", commandName, numErrors,
                     config.getReportFilePath().toUri());
             if (config.isFailOnViolation()) {
-                throw new RuntimeException(violations); // NOPMD
-            } else {
-                if (LOGGER.isLoggable(Level.WARNING)) {
-                    LOGGER.warning(violations);
+                if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                    LOGGER.log(Level.SEVERE, violations);
                 }
+                throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+            } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+                    LOGGER.warning(violations);
             }
         } else {
             var rules = pmd.getRulesets();
@@ -620,7 +625,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                 for (var rule : rules) {
                     count += rule.getRules().size();
                 }
-                if (LOGGER.isLoggable(Level.INFO)) {
+                if (LOGGER.isLoggable(Level.INFO) && !silent()) {
                     LOGGER.info(String.format("[%s] %d rules were checked.", commandName, count));
                 }
             }

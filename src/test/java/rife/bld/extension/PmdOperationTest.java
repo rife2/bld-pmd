@@ -21,6 +21,7 @@ import net.sourceforge.pmd.lang.LanguageRegistry;
 import net.sourceforge.pmd.lang.rule.RulePriority;
 import org.junit.jupiter.api.Test;
 import rife.bld.BaseProject;
+import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -66,7 +67,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testAddInputPath() {
+    void testAddInputPath() throws ExitStatusException {
         var project = new BaseProject();
         var pmd = new PmdOperation().fromProject(project);
 
@@ -93,13 +94,12 @@ class PmdOperationTest {
                 project.srcMainDirectory().toPath(),
                 project.srcTestDirectory().toPath());
 
-
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .isGreaterThan(0).isEqualTo(err);
     }
 
     @Test
-    void testAddRuleSets() {
+    void testAddRuleSets() throws ExitStatusException {
         var pmd = new PmdOperation().fromProject(new BaseProject());
 
         assertThat(pmd.ruleSets()).containsExactly(PmdOperation.RULE_SET_DEFAULT);
@@ -122,7 +122,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testCache() {
+    void testCache() throws ExitStatusException {
         var cache = Path.of("build/pmd/temp-cache");
         var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML).inputPaths(List.of(CODE_STYLE_SAMPLE)).cache(cache);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
@@ -143,7 +143,13 @@ class PmdOperationTest {
     }
 
     @Test
-    void testExecute() {
+    void testExecuteNoProject() {
+        var pmd = new PmdOperation();
+        assertThatCode(pmd::execute).isInstanceOf(ExitStatusException.class);
+    }
+
+    @Test
+    void testExecute() throws ExitStatusException {
         var pmd = new PmdOperation().fromProject(new BaseProject());
 
         assertThat(pmd.inputPaths()).containsExactly(Paths.get("src/main").toAbsolutePath(),
@@ -162,11 +168,11 @@ class PmdOperationTest {
         var pmd = newPmdOperation().ruleSets(DOCUMENTATION_XML)
                 .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
         assertThatCode(() -> pmd.failOnViolation(true).performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
-                .isInstanceOf(RuntimeException.class).hasMessageContaining('[' + TEST + ']');
+                .isInstanceOf(ExitStatusException.class);
     }
 
     @Test
-    void testIgnoreFile() {
+    void testIgnoreFile() throws ExitStatusException {
         var pmd = newPmdOperation()
                 .ruleSets(ERROR_PRONE_XML, CODE_STYLE_XML)
                 .ignoreFile(Path.of("src/test/resources/ignore.txt"));
@@ -191,7 +197,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testInputPaths() {
+    void testInputPaths() throws ExitStatusException {
         var pmd = newPmdOperation()
                 .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
                 .inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
@@ -200,20 +206,20 @@ class PmdOperationTest {
     }
 
     @Test
-    void testJavaBestPractices() {
+    void testJavaBestPractices() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets("category/java/bestpractices.xml")
                 .inputPaths(Path.of("src/test/resources/java/BestPractices.java"));
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
     }
 
     @Test
-    void testJavaCodeStyle() {
+    void testJavaCodeStyle() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML).inputPaths(CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
     }
 
     @Test
-    void testJavaCodeStyleAndErrorProne() {
+    void testJavaCodeStyleAndErrorProne() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML).inputPaths(CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("code style").isGreaterThan(0);
@@ -223,7 +229,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testJavaDesign() {
+    void testJavaDesign() throws ExitStatusException {
         var pmd = newPmdOperation()
                 .ruleSets(DESIGN_XML)
                 .inputPaths("src/test/resources/java/Design.java")
@@ -232,7 +238,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testJavaDocumentation() {
+    void testJavaDocumentation() throws ExitStatusException {
         var pmd = newPmdOperation()
                 .ruleSets(DOCUMENTATION_XML)
                 .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
@@ -240,20 +246,20 @@ class PmdOperationTest {
     }
 
     @Test
-    void testJavaErrorProne() {
+    void testJavaErrorProne() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).inputPaths(ERROR_PRONE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
     }
 
     @Test
-    void testJavaMultiThreading() {
+    void testJavaMultiThreading() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets("category/java/multithreading.xml")
                 .inputPaths(Path.of("src/test/resources/java/MultiThreading.java"));
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
     }
 
     @Test
-    void testJavaPerformance() {
+    void testJavaPerformance() throws ExitStatusException {
         var pmd = newPmdOperation()
                 .ruleSets(PERFORMANCE_XML)
                 .inputPaths(Path.of("src/test/resources/java/Performance.java"));
@@ -261,7 +267,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testJavaQuickStart() {
+    void testJavaQuickStart() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets(PmdOperation.RULE_SET_DEFAULT)
                 .inputPaths(new File("src/test/resources/java/"));
         assertThat(pmd.ruleSets()).containsExactly(PmdOperation.RULE_SET_DEFAULT);
@@ -269,14 +275,14 @@ class PmdOperationTest {
     }
 
     @Test
-    void testJavaSecurity() {
+    void testJavaSecurity() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets(SECURITY_XML)
                 .inputPaths(Path.of("src/test/resources/java/Security.java"));
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
     }
 
     @Test
-    void testLanguageVersions() {
+    void testLanguageVersions() throws ExitStatusException {
         var language = LanguageRegistry.PMD.getLanguageById("java");
         assertThat(language).isNotNull();
 
@@ -295,14 +301,14 @@ class PmdOperationTest {
     }
 
     @Test
-    void testMainOperation() {
+    void testMainOperation() throws ExitStatusException {
         var pmd = newPmdOperation().inputPaths(new File("src/main"))
                 .performPmdAnalysis(TEST, newPmdOperation().initConfiguration(COMMAND_NAME));
         assertThat(pmd).isEqualTo(0);
     }
 
     @Test
-    void testPriority() {
+    void testPriority() throws ExitStatusException {
         var pmd = newPmdOperation().inputPaths(CODE_STYLE_SAMPLE).minimumPriority(RulePriority.HIGH);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(0);
     }
@@ -321,7 +327,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testReportFile() throws FileNotFoundException {
+    void testReportFile() throws FileNotFoundException, ExitStatusException {
         var report = new File("build", "pmd-report-file");
         report.deleteOnExit();
         var pmd = newPmdOperation().ruleSets(List.of(ERROR_PRONE_XML, DESIGN_XML)).reportFile(report);
@@ -338,7 +344,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testReportFormat() throws IOException {
+    void testReportFormat() throws IOException, ExitStatusException {
         var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).reportFormat("xml").inputPaths(ERROR_PRONE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
         try (var br = Files.newBufferedReader(pmd.reportFile())) {
@@ -347,7 +353,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testReportProperties() {
+    void testReportProperties() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML, ERROR_PRONE_XML)
                 .includeLineNumber(true)
                 .reportProperties(new Properties());
@@ -355,14 +361,14 @@ class PmdOperationTest {
     }
 
     @Test
-    void testRuleSetsConfigFile() {
+    void testRuleSetsConfigFile() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets("src/test/resources/pmd.xml")
                 .ignoreFile("src/test/resources/ignore-all.txt");
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(0);
     }
 
     @Test
-    void testRuleSetsEmpty() {
+    void testRuleSetsEmpty() throws ExitStatusException {
         var pmd = newPmdOperation().ruleSets("");
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(0);
     }
@@ -397,7 +403,7 @@ class PmdOperationTest {
     }
 
     @Test
-    void testXml() {
+    void testXml() throws ExitStatusException {
         var pmd = newPmdOperation().addInputPaths("src/test/resources/pmd.xml")
                 .ruleSets("src/test/resources/xml/basic.xml");
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
