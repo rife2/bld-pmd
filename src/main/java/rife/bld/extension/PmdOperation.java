@@ -70,6 +70,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     private Charset encoding_ = StandardCharsets.UTF_8;
     /**
+     * The fail on error toggle.
+     */
+    private boolean failOnError_ = true;
+    /**
      * The fail on violation toggle.
      */
     private boolean failOnViolation_;
@@ -296,7 +300,28 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets whether the build will continue on warnings.
+     * Sets whether the build will exit on recoverable errors.
+     * <p>
+     * Default is: {@code true}
+     * <p>
+     * Note: If only violations are found, see {@link #failOnViolation(boolean) failOnViolation}
+     *
+     * @param failOnError whether to exit and fail the build if recoverable errors occurred
+     * @return this operation
+     * @see #failOnViolation(boolean)
+     */
+    public PmdOperation failOnError(boolean failOnError) {
+        failOnError_ = failOnError;
+        return this;
+    }
+
+    /**
+     * Sets whether the build will continue on violations.
+     * <p>
+     * Note: If additionally recoverable errors occurred, see {@link #failOnError(boolean) failOnError}
+     *
+     * @param failOnViolation whether to exit and fail the build if violations are found
+     * @return this operation
      */
     public PmdOperation failOnViolation(boolean failOnViolation) {
         failOnViolation_ = failOnViolation;
@@ -411,6 +436,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             config.setAnalysisCacheLocation(cache_.toFile().getAbsolutePath());
         }
 
+        config.setFailOnError(failOnError_);
         config.setFailOnViolation(failOnViolation_);
 
         if (languageVersions_ != null) {
@@ -574,8 +600,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param commandName the command name
      * @param config      the configuration
-     * @return the number of errors
-     * @throws RuntimeException if an error occurs
+     * @return the number of violations
+     * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings({"PMD.CloseResource", "PMD.AvoidInstantiatingObjectsInLoops"})
     public int performPmdAnalysis(String commandName, PMDConfiguration config) throws ExitStatusException {
@@ -585,8 +611,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths_});
             LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets_});
         }
-        var numErrors = report.getViolations().size();
-        if (numErrors > 0) {
+
+        var numViolations = report.getViolations().size();
+        if (numViolations > 0) {
             for (var v : report.getViolations()) {
                 if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
                     final String msg;
@@ -608,7 +635,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             }
 
             var violations = String.format(
-                    "[%s] %d rule violations were found. See the report at: %s", commandName, numErrors,
+                    "[%s] %d rule violations were found. See the report at: %s", commandName, numViolations,
                     config.getReportFilePath().toUri());
             if (config.isFailOnViolation()) {
                 if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
@@ -616,8 +643,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                 }
                 throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
             } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-                    LOGGER.warning(violations);
+                LOGGER.warning(violations);
             }
+        } else if (pmd.getReporter().numErrors() > 0 && failOnError_) {
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         } else {
             var rules = pmd.getRulesets();
             if (!rules.isEmpty()) {
@@ -630,7 +659,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                 }
             }
         }
-        return numErrors;
+        return numViolations;
     }
 
     /**

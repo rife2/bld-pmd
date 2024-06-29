@@ -143,12 +143,6 @@ class PmdOperationTest {
     }
 
     @Test
-    void testExecuteNoProject() {
-        var pmd = new PmdOperation();
-        assertThatCode(pmd::execute).isInstanceOf(ExitStatusException.class);
-    }
-
-    @Test
     void testExecute() throws ExitStatusException {
         var pmd = new PmdOperation().fromProject(new BaseProject());
 
@@ -164,11 +158,29 @@ class PmdOperationTest {
     }
 
     @Test
+    void testExecuteNoProject() {
+        var pmd = new PmdOperation();
+        assertThatCode(pmd::execute).isInstanceOf(ExitStatusException.class);
+    }
+
+    @Test
+    void testFailOnError() {
+        var pmd = newPmdOperation().ruleSets("src/test/resources/xml/old.xml")
+                .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
+        assertThatCode(() -> pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
+                .isInstanceOf(ExitStatusException.class);
+        assertThatCode(() -> pmd.failOnError(false).performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
     void testFailOnValidation() {
         var pmd = newPmdOperation().ruleSets(DOCUMENTATION_XML)
                 .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
         assertThatCode(() -> pmd.failOnViolation(true).performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .isInstanceOf(ExitStatusException.class);
+        assertThatCode(() -> pmd.failOnViolation(false).performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -369,7 +381,7 @@ class PmdOperationTest {
 
     @Test
     void testRuleSetsEmpty() throws ExitStatusException {
-        var pmd = newPmdOperation().ruleSets("");
+        var pmd = newPmdOperation().ruleSets("").failOnError(false);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isEqualTo(0);
     }
 
