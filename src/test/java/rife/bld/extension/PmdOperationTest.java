@@ -61,13 +61,13 @@ class PmdOperationTest {
     PmdOperation newPmdOperation() {
         return new PmdOperation()
                 .inputPaths(Path.of("src/main"), Path.of("src/test"))
-                .cache(Paths.get("build", COMMAND_NAME, "pmd-cache"))
+                .cache("build/" + COMMAND_NAME + "/pmd-cache")
                 .failOnViolation(false)
                 .reportFile(Paths.get("build", COMMAND_NAME, "pmd-test-report.txt"));
     }
 
     @Test
-    void testAddInputPath() throws ExitStatusException {
+    void testAddInputPaths() throws ExitStatusException {
         var project = new BaseProject();
         var pmd = new PmdOperation().fromProject(project);
 
@@ -82,17 +82,35 @@ class PmdOperationTest {
         assertThat(pmd.inputPaths()).as("main").containsExactly(project.srcMainDirectory().toPath());
 
         pmd.inputPaths().clear();
-        pmd.addInputPaths(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+        pmd = pmd.addInputPaths(project.srcMainDirectory(), project.srcTestDirectory());
 
-        assertThat(pmd.inputPaths()).as("toPath(main, test)").containsExactly(project.srcMainDirectory().toPath(),
+        assertThat(pmd.inputPaths()).as("main, test").containsExactly(project.srcMainDirectory().toPath(),
                 project.srcTestDirectory().toPath());
 
         pmd.inputPaths().clear();
-        pmd.addInputPaths(List.of(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath()));
+        pmd = pmd.addInputPathsFiles(List.of(project.srcMainDirectory(), project.srcTestDirectory()));
 
-        assertThat(pmd.inputPaths()).as("List(main, test)").containsExactly(
-                project.srcMainDirectory().toPath(),
-                project.srcTestDirectory().toPath());
+        assertThat(pmd.inputPaths()).as("PathsFiles(main, test)")
+                .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+
+        pmd.inputPaths().clear();
+        pmd = pmd.addInputPathsStrings(
+                List.of(project.srcMainDirectory().getAbsolutePath(), project.srcTestDirectory().getAbsolutePath()));
+
+        assertThat(pmd.inputPaths()).as("PathsStrings(main, test)")
+                .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+
+        pmd.inputPaths().clear();
+        pmd = pmd.addInputPaths(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+
+        assertThat(pmd.inputPaths()).as("toPath(main, test)")
+                .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+
+        pmd.inputPaths().clear();
+        pmd = pmd.addInputPaths(List.of(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath()));
+
+        assertThat(pmd.inputPaths()).as("List(main, test)")
+                .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
 
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .isGreaterThan(0).isEqualTo(err);
@@ -124,7 +142,10 @@ class PmdOperationTest {
     @Test
     void testCache() throws ExitStatusException {
         var cache = Path.of("build/pmd/temp-cache");
-        var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML).inputPaths(List.of(CODE_STYLE_SAMPLE)).cache(cache);
+        var pmd = newPmdOperation()
+                .ruleSets(CODE_STYLE_XML)
+                .inputPaths(List.of(CODE_STYLE_SAMPLE))
+                .cache(cache);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
         var f = cache.toFile();
         assertThat(f.exists()).as("file exits").isTrue();
@@ -213,7 +234,31 @@ class PmdOperationTest {
         var pmd = newPmdOperation()
                 .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
                 .inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-        assertThat(pmd.inputPaths()).contains(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.inputPaths()).as("paths").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
+
+        pmd = newPmdOperation()
+                .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
+                .inputPaths(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile());
+        assertThat(pmd.inputPaths()).as("toFile()").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
+
+        pmd = newPmdOperation()
+                .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
+                .inputPaths(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString());
+        assertThat(pmd.inputPaths()).as("toString").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
+
+        pmd = newPmdOperation()
+                .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
+                .inputPathsFiles(List.of(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile()));
+        assertThat(pmd.inputPaths()).as("PathsFiles").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
+
+        pmd = newPmdOperation()
+                .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
+                .inputPathsStrings(List.of(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString()));
+        assertThat(pmd.inputPaths()).as("PathsStrings").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
     }
 
@@ -235,6 +280,7 @@ class PmdOperationTest {
         var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML).inputPaths(CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("code style").isGreaterThan(0);
+
         pmd = pmd.ruleSets(ERROR_PRONE_XML).inputPaths(ERROR_PRONE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
                 .as("code style + error prone").isGreaterThan(0);
@@ -245,7 +291,7 @@ class PmdOperationTest {
         var pmd = newPmdOperation()
                 .ruleSets(DESIGN_XML)
                 .inputPaths("src/test/resources/java/Design.java")
-                .cache(Path.of("build/pmd/design-cache"));
+                .cache(new File("build/pmd/design-cache"));
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
     }
 
@@ -336,6 +382,18 @@ class PmdOperationTest {
         var config = pmd.initConfiguration(COMMAND_NAME);
         assertThat(config.getRelativizeRoots()).isEqualTo(pmd.relativizeRoots());
         assertThat(config.getRelativizeRoots()).containsExactly(foo, bar, baz, foo, bar, baz);
+
+        pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
+                .relativizeRootsFiles(List.of(foo.toFile(), bar.toFile(), baz.toFile()));
+        config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getRelativizeRoots()).as("toFile").isEqualTo(pmd.relativizeRoots());
+        assertThat(config.getRelativizeRoots()).containsExactly(foo, bar, baz);
+
+        pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
+                .relativizeRootsStrings(List.of(foo.toString(), bar.toString(), baz.toString()));
+        config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getRelativizeRoots()).as("toString").isEqualTo(pmd.relativizeRoots());
+        assertThat(config.getRelativizeRoots()).containsExactly(foo, bar, baz);
     }
 
     @Test

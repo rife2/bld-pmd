@@ -142,8 +142,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Path...)
      */
     public PmdOperation addInputPaths(Path... inputPath) {
-        inputPaths_.addAll(List.of(inputPath));
-        return this;
+        return inputPaths(List.of(inputPath));
     }
 
     /**
@@ -154,8 +153,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(File...)
      */
     public PmdOperation addInputPaths(File... inputPath) {
-        inputPaths_.addAll(Arrays.stream(inputPath).map(File::toPath).toList());
-        return this;
+        return addInputPathsFiles(List.of(inputPath));
     }
 
     /**
@@ -163,11 +161,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPath one or more paths
      * @return this operation
-     * @see #addInputPaths(String...)
+     * @see #inputPaths(String...)
      */
     public PmdOperation addInputPaths(String... inputPath) {
-        inputPaths_.addAll(Arrays.stream(inputPath).map(Paths::get).toList());
-        return this;
+        return addInputPathsStrings(List.of(inputPath));
     }
 
     /**
@@ -180,6 +177,28 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     public PmdOperation addInputPaths(Collection<Path> inputPath) {
         inputPaths_.addAll(inputPath);
         return this;
+    }
+
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath a collection of input paths
+     * @return this operation
+     * @see #inputPathsFiles(Collection)
+     */
+    public PmdOperation addInputPathsFiles(Collection<File> inputPath) {
+        return addInputPaths(inputPath.stream().map(File::toPath).toList());
+    }
+
+    /**
+     * Adds paths to source files, or directories containing source files to analyze.
+     *
+     * @param inputPath a collection of input paths
+     * @return this operation
+     * @see #inputPathsStrings(Collection)
+     */
+    public PmdOperation addInputPathsStrings(Collection<String> inputPath) {
+        return addInputPaths(inputPath.stream().map(Paths::get).toList());
     }
 
     /**
@@ -203,8 +222,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ruleSets(String...)
      */
     public PmdOperation addRuleSet(String... ruleSet) {
-        ruleSets_.addAll(List.of(ruleSet));
-        return this;
+        return addRuleSet(List.of(ruleSet));
     }
 
     /**
@@ -225,7 +243,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param ruleSet a collection of rule set paths
      * @return this operation
-     * @see #ruleSets(Collection
+     * @see #ruleSets(Collection)
      */
     public PmdOperation addRuleSet(Collection<String> ruleSet) {
         ruleSets_.addAll(ruleSet);
@@ -241,14 +259,28 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * Sets the location of the cache file for incremental analysis.
+     */
+    public PmdOperation cache(File cache) {
+        return cache(cache.toPath());
+    }
+
+    /**
+     * Sets the location of the cache file for incremental analysis.
+     */
+    public PmdOperation cache(String cache) {
+        return cache(Path.of(cache));
+    }
+
+
+    /**
      * Sets the default language version to be used for all input files.
      *
      * @param languageVersion one or more language version
      * @return this operation
      */
     public PmdOperation defaultLanguageVersions(LanguageVersion... languageVersion) {
-        languageVersions_.addAll(List.of(languageVersion));
-        return this;
+        return languageVersions(List.of(languageVersion));
     }
 
     /**
@@ -268,8 +300,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
      */
     public PmdOperation encoding(String encoding) {
-        encoding_ = Charset.forName(encoding);
-        return this;
+        return encoding(Charset.forName(encoding));
     }
 
     /**
@@ -385,8 +416,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation ignoreFile(File ignoreFile) {
-        ignoreFile_ = ignoreFile.toPath();
-        return this;
+        return ignoreFile(ignoreFile.toPath());
     }
 
     /**
@@ -396,8 +426,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation ignoreFile(String ignoreFile) {
-        ignoreFile_ = Paths.get(ignoreFile);
-        return this;
+        return ignoreFile(Path.of(ignoreFile));
     }
 
     /**
@@ -495,9 +524,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPaths(Path...)
      */
     public PmdOperation inputPaths(Path... inputPath) {
-        inputPaths_.clear();
-        inputPaths_.addAll(List.of(inputPath));
-        return this;
+        return inputPaths(List.of(inputPath));
     }
 
     /**
@@ -510,9 +537,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPaths(File...)
      */
     public PmdOperation inputPaths(File... inputPath) {
-        inputPaths_.clear();
-        inputPaths_.addAll(Arrays.stream(inputPath).map(File::toPath).toList());
-        return this;
+        return inputPathsFiles(List.of(inputPath));
     }
 
     /**
@@ -525,9 +550,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPaths(String...)
      */
     public PmdOperation inputPaths(String... inputPath) {
-        inputPaths_.clear();
-        inputPaths_.addAll(Arrays.stream(inputPath).map(Paths::get).toList());
-        return this;
+        return inputPathsStrings(List.of(inputPath));
     }
 
     /**
@@ -537,7 +560,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPath a collection of input paths
      * @return this operation
-     * @see #addInputPaths(Collection)
+     * @see #addInputPaths(Path...)
      */
     public PmdOperation inputPaths(Collection<Path> inputPath) {
         inputPaths_.clear();
@@ -555,14 +578,39 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * Sets  paths to source files, or directories containing source files to analyze.
+     * <p>
+     * Previous entries are disregarded.
+     *
+     * @param inputPath a collection of input paths
+     * @return this operation
+     * @see #addInputPaths(File...)
+     */
+    public PmdOperation inputPathsFiles(Collection<File> inputPath) {
+        return inputPaths(inputPath.stream().map(File::toPath).toList());
+    }
+
+    /**
+     * Sets  paths to source files, or directories containing source files to analyze.
+     * <p>
+     * Previous entries are disregarded.
+     *
+     * @param inputPath a collection of input paths
+     * @return this operation
+     * @see #addInputPaths(String...)
+     */
+    public PmdOperation inputPathsStrings(Collection<String> inputPath) {
+        return inputPaths(inputPath.stream().map(Paths::get).toList());
+    }
+
+    /**
      * Sets the default language versions.
      *
      * @param languageVersion one or more language versions
      * @return this operation
      */
     public PmdOperation languageVersions(LanguageVersion... languageVersion) {
-        languageVersions_.addAll(List.of(languageVersion));
-        return this;
+        return languageVersions(List.of(languageVersion));
     }
 
     /**
@@ -667,10 +715,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param relativeRoot one or more relative root paths
      * @return this operations
+     * @see #relativizeRoots(Collection)
      */
     public PmdOperation relativizeRoots(Path... relativeRoot) {
-        relativizeRoots_.addAll(List.of(relativeRoot));
-        return this;
+        return relativizeRoots(List.of(relativeRoot));
     }
 
     /**
@@ -678,10 +726,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param relativeRoot one or more relative root paths
      * @return this operations
+     * @see #relativizeRootsFiles(Collection)
      */
     public PmdOperation relativizeRoots(File... relativeRoot) {
-        relativizeRoots_.addAll(Arrays.stream(relativeRoot).map(File::toPath).toList());
-        return this;
+        return relativizeRootsFiles(List.of(relativeRoot));
     }
 
     /**
@@ -689,10 +737,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param relativeRoot one or more relative root paths
      * @return this operations
+     * @see #relativizeRootsStrings(Collection)
      */
     public PmdOperation relativizeRoots(String... relativeRoot) {
-        relativizeRoots_.addAll(Arrays.stream(relativeRoot).map(Paths::get).toList());
-        return this;
+        return relativizeRootsStrings(List.of(relativeRoot));
     }
 
     /**
@@ -700,6 +748,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param relativeRoot a collection of relative root paths
      * @return this operations
+     * @see #relativizeRoots(Path...)
      */
     public PmdOperation relativizeRoots(Collection<Path> relativeRoot) {
         relativizeRoots_.addAll(relativeRoot);
@@ -713,6 +762,28 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public Collection<Path> relativizeRoots() {
         return relativizeRoots_;
+    }
+
+    /**
+     * Adds several paths to shorten paths that are output in the report.
+     *
+     * @param relativeRoot a collection of relative root paths
+     * @return this operations
+     * @see #relativizeRoots(File...)
+     */
+    public PmdOperation relativizeRootsFiles(Collection<File> relativeRoot) {
+        return relativizeRoots(relativeRoot.stream().map(File::toPath).toList());
+    }
+
+    /**
+     * Adds several paths to shorten paths that are output in the report.
+     *
+     * @param relativeRoot a collection of relative root paths
+     * @return this operations
+     * @see #relativizeRoots(String...)
+     */
+    public PmdOperation relativizeRootsStrings(Collection<String> relativeRoot) {
+        return relativizeRoots(relativeRoot.stream().map(Paths::get).toList());
     }
 
     /**
