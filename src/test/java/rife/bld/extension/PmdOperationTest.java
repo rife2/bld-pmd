@@ -77,39 +77,41 @@ class PmdOperationTest {
         var err = pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME));
 
         pmd.inputPaths().clear();
-        pmd.addInputPaths(project.srcMainDirectory());
-
-        assertThat(pmd.inputPaths()).as("main").containsExactly(project.srcMainDirectory().toPath());
-
-        pmd.inputPaths().clear();
         pmd = pmd.addInputPaths(project.srcMainDirectory(), project.srcTestDirectory());
 
-        assertThat(pmd.inputPaths()).as("main, test").containsExactly(project.srcMainDirectory().toPath(),
+        assertThat(pmd.inputPaths()).as("File...").containsExactly(project.srcMainDirectory().toPath(),
                 project.srcTestDirectory().toPath());
 
         pmd.inputPaths().clear();
         pmd = pmd.addInputPathsFiles(List.of(project.srcMainDirectory(), project.srcTestDirectory()));
 
-        assertThat(pmd.inputPaths()).as("PathsFiles(main, test)")
+        assertThat(pmd.inputPaths()).as("List(File...)")
+                .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+
+        pmd.inputPaths().clear();
+        pmd = pmd.addInputPaths(project.srcMainDirectory().getAbsolutePath(),
+                project.srcTestDirectory().getAbsolutePath());
+
+        assertThat(pmd.inputPaths()).as("String...")
                 .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
 
         pmd.inputPaths().clear();
         pmd = pmd.addInputPathsStrings(
                 List.of(project.srcMainDirectory().getAbsolutePath(), project.srcTestDirectory().getAbsolutePath()));
 
-        assertThat(pmd.inputPaths()).as("PathsStrings(main, test)")
+        assertThat(pmd.inputPaths()).as("List(String...)")
                 .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
 
         pmd.inputPaths().clear();
         pmd = pmd.addInputPaths(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
 
-        assertThat(pmd.inputPaths()).as("toPath(main, test)")
+        assertThat(pmd.inputPaths()).as("Path...")
                 .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
 
         pmd.inputPaths().clear();
         pmd = pmd.addInputPaths(List.of(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath()));
 
-        assertThat(pmd.inputPaths()).as("List(main, test)")
+        assertThat(pmd.inputPaths()).as("List(Path)")
                 .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
 
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
@@ -234,31 +236,31 @@ class PmdOperationTest {
         var pmd = newPmdOperation()
                 .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
                 .inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-        assertThat(pmd.inputPaths()).as("paths").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.inputPaths()).as("Path....").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
 
         pmd = newPmdOperation()
                 .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
                 .inputPaths(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile());
-        assertThat(pmd.inputPaths()).as("toFile()").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.inputPaths()).as("File...").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
 
         pmd = newPmdOperation()
                 .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
                 .inputPaths(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString());
-        assertThat(pmd.inputPaths()).as("toString").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.inputPaths()).as("String...").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
 
         pmd = newPmdOperation()
                 .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
                 .inputPathsFiles(List.of(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile()));
-        assertThat(pmd.inputPaths()).as("PathsFiles").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.inputPaths()).as("List(Path...)").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
 
         pmd = newPmdOperation()
                 .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
                 .inputPathsStrings(List.of(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString()));
-        assertThat(pmd.inputPaths()).as("PathsStrings").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+        assertThat(pmd.inputPaths()).as("List(String...)").containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
     }
 
@@ -347,7 +349,7 @@ class PmdOperationTest {
         var pmd = newPmdOperation()
                 .forceLanguageVersion(language.getLatestVersion())
                 .defaultLanguageVersions(language.getVersions())
-                .languageVersions(language.getVersion("22"))
+                .languageVersions(language.getDefaultVersion())
                 .ruleSets(PmdOperation.RULE_SET_DEFAULT);
         assertThat(pmd.languageVersions()).contains(language.getDefaultVersion());
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
@@ -386,13 +388,13 @@ class PmdOperationTest {
         pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
                 .relativizeRootsFiles(List.of(foo.toFile(), bar.toFile(), baz.toFile()));
         config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getRelativizeRoots()).as("toFile").isEqualTo(pmd.relativizeRoots());
+        assertThat(config.getRelativizeRoots()).as("List(File...)").isEqualTo(pmd.relativizeRoots());
         assertThat(config.getRelativizeRoots()).containsExactly(foo, bar, baz);
 
         pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
                 .relativizeRootsStrings(List.of(foo.toString(), bar.toString(), baz.toString()));
         config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getRelativizeRoots()).as("toString").isEqualTo(pmd.relativizeRoots());
+        assertThat(config.getRelativizeRoots()).as("List(String....)").isEqualTo(pmd.relativizeRoots());
         assertThat(config.getRelativizeRoots()).containsExactly(foo, bar, baz);
     }
 

@@ -560,7 +560,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPath a collection of input paths
      * @return this operation
-     * @see #addInputPaths(Path...)
+     * @see #addInputPaths(Collection)
      */
     public PmdOperation inputPaths(Collection<Path> inputPath) {
         inputPaths_.clear();
@@ -584,7 +584,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPath a collection of input paths
      * @return this operation
-     * @see #addInputPaths(File...)
+     * @see #addInputPathsFiles(Collection) )
      */
     public PmdOperation inputPathsFiles(Collection<File> inputPath) {
         return inputPaths(inputPath.stream().map(File::toPath).toList());
@@ -597,7 +597,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPath a collection of input paths
      * @return this operation
-     * @see #addInputPaths(String...)
+     * @see #addInputPathsStrings(Collection)
      */
     public PmdOperation inputPathsStrings(Collection<String> inputPath) {
         return inputPaths(inputPath.stream().map(Paths::get).toList());
@@ -804,8 +804,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation reportFile(File reportFile) {
-        reportFile_ = reportFile.toPath();
-        return this;
+        return reportFile(reportFile.toPath());
     }
 
     /**
@@ -815,8 +814,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation reportFile(String reportFile) {
-        reportFile_ = Paths.get(reportFile);
-        return this;
+        return reportFile(Paths.get(reportFile));
     }
 
     /**
@@ -871,9 +869,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addRuleSet(String...)
      */
     public PmdOperation ruleSets(String... ruleSet) {
-        ruleSets_.clear();
-        ruleSets_.addAll(List.of(ruleSet));
-        return this;
+        return ruleSets(List.of(ruleSet));
     }
 
     /**
