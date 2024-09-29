@@ -46,8 +46,8 @@ public class PmdOperationBuild extends Project {
         scope(runtime)
                 .include(dependency("org.slf4j", "slf4j-simple", version(2, 0, 16)));
         scope(test)
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 11, 0)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 11, 0)))
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 11, 1)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 11, 1)))
                 .include(dependency("org.assertj", "assertj-core", version(3, 26, 3)));
 
         javadocOperation()
