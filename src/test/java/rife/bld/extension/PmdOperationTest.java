@@ -19,6 +19,7 @@ package rife.bld.extension;
 import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.lang.LanguageRegistry;
 import net.sourceforge.pmd.lang.rule.RulePriority;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.Test;
 import rife.bld.BaseProject;
 import rife.bld.operations.exceptions.ExitStatusException;
@@ -382,20 +383,20 @@ class PmdOperationTest {
         var pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO)).relativizeRoots(foo).relativizeRoots(bar.toFile())
                 .relativizeRoots(baz.toString()).relativizeRoots(List.of(foo, bar, baz));
         var config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getRelativizeRoots()).isEqualTo(pmd.relativizeRoots());
-        assertThat(config.getRelativizeRoots()).containsExactly(foo, bar, baz, foo, bar, baz);
+        assertThat(config.getRelativizeRoots()).isEqualTo(pmd.relativizeRoots())
+                .containsExactly(foo, bar, baz, foo, bar, baz);
 
         pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
                 .relativizeRootsFiles(List.of(foo.toFile(), bar.toFile(), baz.toFile()));
         config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getRelativizeRoots()).as("List(File...)").isEqualTo(pmd.relativizeRoots());
-        assertThat(config.getRelativizeRoots()).containsExactly(foo, bar, baz);
+        assertThat(config.getRelativizeRoots()).as("List(File...)").isEqualTo(pmd.relativizeRoots())
+                .containsExactly(foo, bar, baz);
 
         pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
                 .relativizeRootsStrings(List.of(foo.toString(), bar.toString(), baz.toString()));
         config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getRelativizeRoots()).as("List(String....)").isEqualTo(pmd.relativizeRoots());
-        assertThat(config.getRelativizeRoots()).containsExactly(foo, bar, baz);
+        assertThat(config.getRelativizeRoots()).as("List(String....)").isEqualTo(pmd.relativizeRoots())
+                .containsExactly(foo, bar, baz);
     }
 
     @Test
@@ -419,8 +420,11 @@ class PmdOperationTest {
     void testReportFormat() throws IOException, ExitStatusException {
         var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).reportFormat("xml").inputPaths(ERROR_PRONE_SAMPLE);
         assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME))).isGreaterThan(0);
-        try (var br = Files.newBufferedReader(pmd.reportFile())) {
-            assertThat(br.readLine()).as("xml report").startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            try (var br = Files.newBufferedReader(pmd.reportFile())) {
+                softly.assertThat(br.readLine()).as("xml report")
+                        .startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+            }
         }
     }
 
