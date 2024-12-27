@@ -40,16 +40,16 @@ public class PmdOperationBuild extends Project {
         
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES, RIFE2_SNAPSHOTS);
 
-        var pmd = version(7, 8, 0);
+        var pmd = version(7, 9, 0);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld", version(2, 1, 0)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
                 .include(dependency("org.slf4j", "slf4j-simple", version(2, 0, 16)));
         scope(test)
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 11, 3)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 11, 3)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 26, 3)));
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 11, 4)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 11, 4)))
+                .include(dependency("org.assertj", "assertj-core", version(3, 27, 0)));
 
         javadocOperation()
                 .javadocOptions()
