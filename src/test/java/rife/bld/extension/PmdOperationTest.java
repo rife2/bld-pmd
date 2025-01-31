@@ -167,6 +167,24 @@ class PmdOperationTest {
     }
 
     @Test
+    void testExcludes() {
+        var foo = Path.of("foo/bar");
+        var bar = Path.of("bar/foo");
+        var foz = Path.of("foz/baz");
+        var baz = Path.of("baz/foz");
+
+        var excludes = List.of(foo, bar);
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludes(excludes);
+        var config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).containsExactly(excludes.toArray(new Path[0]));
+
+        pmd = pmd.excludes(baz, foz);
+        assertThat(pmd.excludes()).hasSize(4);
+        config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).hasSize(4).contains(bar, foz);
+    }
+
+    @Test
     void testExecute() throws ExitStatusException {
         var pmd = new PmdOperation().fromProject(new BaseProject());
 
@@ -366,6 +384,12 @@ class PmdOperationTest {
         var pmd = newPmdOperation().inputPaths(new File("src/main"))
                 .performPmdAnalysis(TEST, newPmdOperation().initConfiguration(COMMAND_NAME));
         assertThat(pmd).isEqualTo(0);
+    }
+
+    @Test
+    void testPrependAuxClasspath() {
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).prependAuxClasspath("foo", "bar");
+        assertThat(pmd.prependAuxClasspath()).isEqualTo("foo" + File.pathSeparator + "bar");
     }
 
     @Test

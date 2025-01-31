@@ -50,6 +50,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     private static final Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
     private static final String PMD_DIR = "pmd";
     /**
+     * The list of paths to exclude.
+     */
+    private final List<Path> excludes_ = new ArrayList<>();
+    /**
      * The input paths (source) list.
      */
     private final Collection<Path> inputPaths_ = new ArrayList<>();
@@ -101,6 +105,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * The default language version(s).
      */
     private Collection<LanguageVersion> languageVersions_ = new ArrayList<>();
+    /**
+     * The classpath to prepend.
+     */
+    private String prependClasspath_;
     /**
      * The project reference.
      */
@@ -272,7 +280,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         return cache(Path.of(cache));
     }
 
-
     /**
      * Sets the default language version to be used for all input files.
      *
@@ -312,6 +319,37 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     public PmdOperation encoding(Charset encoding) {
         encoding_ = encoding;
         return this;
+    }
+
+    /**
+     * Adds paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     */
+    public PmdOperation excludes(Path... excludes) {
+        excludes_.addAll(List.of(excludes));
+        return this;
+    }
+
+    /**
+     * Adds paths to exclude from the analysis.
+     *
+     * @param excludes paths to exclude
+     * @return this operation
+     */
+    public PmdOperation excludes(Collection<Path> excludes) {
+        excludes_.addAll(excludes);
+        return this;
+    }
+
+    /**
+     * Returns the paths to exclude from the analysis.
+     *
+     * @return the exclude paths
+     */
+    public List<Path> excludes() {
+        return excludes_;
     }
 
     /**
@@ -456,8 +494,17 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PMDConfiguration initConfiguration(String commandName) {
-        PMDConfiguration config = new PMDConfiguration();
+        var config = new PMDConfiguration();
 
+        // addRelativizeRoots
+        config.addRelativizeRoots(relativizeRoots_.stream().toList());
+
+        // prependAuxClasspath
+        if (prependClasspath_ != null) {
+            config.prependAuxClasspath(prependClasspath_);
+        }
+
+        // setAnalysisCacheLocation
         if (cache_ == null && project_ != null && incrementalAnalysis_) {
             config.setAnalysisCacheLocation(
                     Paths.get(project_.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-cache").toFile().getAbsolutePath());
@@ -465,38 +512,50 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             config.setAnalysisCacheLocation(cache_.toFile().getAbsolutePath());
         }
 
-        config.setFailOnError(failOnError_);
-        config.setFailOnViolation(failOnViolation_);
-
+        // setDefaultLanguageVersions
         if (languageVersions_ != null) {
             config.setDefaultLanguageVersions(languageVersions_.stream().toList());
         }
 
+        // setExcludes
+        if (!excludes_.isEmpty()) {
+            config.setExcludes(excludes_);
+        }
+
+        // setFailOnError
+        config.setFailOnError(failOnError_);
+        // setFailOnViolation
+        config.setFailOnViolation(failOnViolation_);
+
+        // setForceLanguageVersion
         if (forcedLanguageVersion_ != null) {
             config.setForceLanguageVersion(forcedLanguageVersion_);
         }
 
+        // setIgnoreFilePath
         if (ignoreFile_ != null) {
             config.setIgnoreFilePath(ignoreFile_);
         }
 
+        // setIgnoreIncrementalAnalysis
         config.setIgnoreIncrementalAnalysis(!incrementalAnalysis_);
 
+        // setInputPathList
         if (inputPaths_.isEmpty()) {
             throw new IllegalArgumentException(commandName + ": InputPaths required.");
         } else {
             config.setInputPathList(inputPaths_.stream().toList());
         }
-        if (reportProperties_ != null) {
-            config.setReportProperties(reportProperties_);
-        }
 
+        // setInputUri
         if (inputUri_ != null) {
             config.setInputUri(inputUri_);
         }
 
+        // setMinimumPriority
         config.setMinimumPriority(rulePriority_);
 
+        // setReportFile
         if (project_ != null) {
             config.setReportFile(Objects.requireNonNullElseGet(reportFile_,
                     () -> Paths.get(project_.buildDirectory().getPath(),
@@ -505,12 +564,25 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             config.setReportFile(reportFile_);
         }
 
-        config.addRelativizeRoots(relativizeRoots_.stream().toList());
+        // setReportFormat
         config.setReportFormat(reportFormat_);
+
+        // setReportProperties
+        if (reportProperties_ != null) {
+            config.setReportProperties(reportProperties_);
+        }
+
+        // setRuleSets
         config.setRuleSets(ruleSets_.stream().toList());
+
+        // setShowSuppressedViolations
         config.setShowSuppressedViolations(showSuppressed_);
+        // setSourceEncoding
         config.setSourceEncoding(encoding_);
+        // setSuppressMarker
         config.setSuppressMarker(suppressedMarker_);
+
+        // setThreads
         config.setThreads(threads_);
 
         return config;
@@ -711,10 +783,35 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * Prepend the specified classpath like string to the current ClassLoader of the configuration. If no ClassLoader
+     * is currently configured, the ClassLoader used to load the PMDConfiguration class will be used as the parent
+     * ClassLoader of the created ClassLoader.
+     * <p>
+     * If the classpath String looks like a URL to a file (i.e. starts with {@code file://}) the file will be read with
+     * each line representing an entry on the classpath.
+     *
+     * @param classpath one or more classpath
+     * @return this operation
+     */
+    public PmdOperation prependAuxClasspath(String... classpath) {
+        prependClasspath_ = String.join(File.pathSeparator, classpath);
+        return this;
+    }
+
+    /**
+     * Returns the prepended classpath.
+     *
+     * @return the classpath
+     */
+    public String prependAuxClasspath() {
+        return prependClasspath_;
+    }
+
+    /**
      * Adds several paths to shorten paths that are output in the report.
      *
      * @param relativeRoot one or more relative root paths
-     * @return this operations
+     * @return this operation
      * @see #relativizeRoots(Collection)
      */
     public PmdOperation relativizeRoots(Path... relativeRoot) {
@@ -725,7 +822,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Adds several paths to shorten paths that are output in the report.
      *
      * @param relativeRoot one or more relative root paths
-     * @return this operations
+     * @return this operation
      * @see #relativizeRootsFiles(Collection)
      */
     public PmdOperation relativizeRoots(File... relativeRoot) {
@@ -736,7 +833,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Adds several paths to shorten paths that are output in the report.
      *
      * @param relativeRoot one or more relative root paths
-     * @return this operations
+     * @return this operation
      * @see #relativizeRootsStrings(Collection)
      */
     public PmdOperation relativizeRoots(String... relativeRoot) {
@@ -747,7 +844,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Adds several paths to shorten paths that are output in the report.
      *
      * @param relativeRoot a collection of relative root paths
-     * @return this operations
+     * @return this operation
      * @see #relativizeRoots(Path...)
      */
     public PmdOperation relativizeRoots(Collection<Path> relativeRoot) {
@@ -768,7 +865,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Adds several paths to shorten paths that are output in the report.
      *
      * @param relativeRoot a collection of relative root paths
-     * @return this operations
+     * @return this operation
      * @see #relativizeRoots(File...)
      */
     public PmdOperation relativizeRootsFiles(Collection<File> relativeRoot) {
@@ -779,7 +876,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Adds several paths to shorten paths that are output in the report.
      *
      * @param relativeRoot a collection of relative root paths
-     * @return this operations
+     * @return this operation
      * @see #relativizeRoots(String...)
      */
     public PmdOperation relativizeRootsStrings(Collection<String> relativeRoot) {
