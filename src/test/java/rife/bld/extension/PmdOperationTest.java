@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  * @since 1.0
  */
 class PmdOperationTest {
+    static final String BAR = "bar";
     static final String CATEGORY_FOO = "category/foo.xml";
     static final Path CODE_STYLE_SAMPLE = Path.of("src/test/resources/java/CodeStyle.java");
     static final String CODE_STYLE_XML = "category/java/codestyle.xml";
@@ -55,6 +56,11 @@ class PmdOperationTest {
     static final String DOCUMENTATION_XML = "category/java/documentation.xml";
     static final Path ERROR_PRONE_SAMPLE = Path.of("src/test/resources/java/ErrorProne.java");
     static final String ERROR_PRONE_XML = "category/java/errorprone.xml";
+    static final File FILE_BAR = new File(BAR);
+    static final String FOO = "foo";
+    static final File FILE_FOO = new File(FOO);
+    static final Path PATH_BAR = Path.of(BAR);
+    static final Path PATH_FOO = Path.of(FOO);
     static final String PERFORMANCE_XML = "category/java/performance.xml";
     static final String SECURITY_XML = "category/java/security.xml";
     static final String TEST = "test";
@@ -65,6 +71,39 @@ class PmdOperationTest {
                 .cache("build/" + COMMAND_NAME + "/pmd-cache")
                 .failOnViolation(false)
                 .reportFile(Paths.get("build", COMMAND_NAME, "pmd-test-report.txt"));
+    }
+
+    @Test
+    void testAddExcludes() {
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).addExcludes(PATH_FOO);
+        var config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).containsExactly(PATH_FOO);
+
+        pmd = pmd.addExcludes(PATH_BAR);
+        config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).containsExactly(PATH_FOO, PATH_BAR);
+    }
+
+    @Test
+    void testAddExcludesFiles() {
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).addExcludesFiles(FILE_FOO);
+        var config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).containsExactly(FILE_FOO.toPath());
+
+        pmd = pmd.addExcludesFiles(FILE_BAR);
+        config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).containsExactly(FILE_FOO.toPath(), FILE_BAR.toPath());
+    }
+
+    @Test
+    void testAddExcludesStrings() {
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).addExcludesStrings(FOO);
+        var config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).containsExactly(PATH_FOO);
+
+        pmd = pmd.addExcludesStrings(BAR);
+        config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).containsExactly(PATH_FOO, PATH_BAR);
     }
 
     @Test
@@ -168,20 +207,55 @@ class PmdOperationTest {
 
     @Test
     void testExcludes() {
-        var foo = Path.of("foo/bar");
-        var bar = Path.of("bar/foo");
         var foz = Path.of("foz/baz");
         var baz = Path.of("baz/foz");
 
-        var excludes = List.of(foo, bar);
-        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludes(excludes);
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludes(PATH_FOO, PATH_BAR);
         var config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getExcludes()).containsExactly(excludes.toArray(new Path[0]));
+        assertThat(pmd.excludes()).containsExactly(List.of(PATH_FOO, PATH_BAR).toArray(new Path[0]));
+        assertThat(config.getExcludes()).containsExactly(List.of(PATH_FOO, PATH_BAR).toArray(new Path[0]));
 
-        pmd = pmd.excludes(baz, foz);
-        assertThat(pmd.excludes()).hasSize(4);
-        config = pmd.initConfiguration(COMMAND_NAME);
-        assertThat(config.getExcludes()).hasSize(4).contains(bar, foz);
+        var excludes = List.of(List.of(PATH_FOO, PATH_BAR), List.of(foz, baz));
+        for (var exclude : excludes) {
+            pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludes(exclude);
+            config = pmd.initConfiguration(COMMAND_NAME);
+            assertThat(config.getExcludes()).containsExactly(exclude.toArray(new Path[0]));
+        }
+    }
+
+    @Test
+    void testExcludesFiles() {
+        var foz = new File("foz");
+        var baz = new File("baz");
+
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesFiles(FILE_FOO, FILE_BAR);
+        var config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(config.getExcludes()).containsExactly(FILE_FOO.toPath(), FILE_BAR.toPath());
+
+        var excludes = List.of(List.of(FILE_FOO, FILE_BAR), List.of(foz, baz));
+        for (var exclude : excludes) {
+            pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesFiles(exclude);
+            config = pmd.initConfiguration(COMMAND_NAME);
+            assertThat(config.getExcludes()).containsExactly(exclude.stream().map(File::toPath).toArray(Path[]::new));
+        }
+    }
+
+    @Test
+    void testExcludesStrings() {
+        var foz = "foz";
+        var baz = "baz";
+
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesStrings(FOO, BAR);
+        var config = pmd.initConfiguration(COMMAND_NAME);
+        assertThat(pmd.excludes()).containsExactly(PATH_FOO, PATH_BAR);
+        assertThat(config.getExcludes()).containsExactly(PATH_FOO, PATH_BAR);
+
+        var excludes = List.of(List.of(FOO, BAR), List.of(foz, baz));
+        for (var exclude : excludes) {
+            pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesStrings(exclude);
+            config = pmd.initConfiguration(COMMAND_NAME);
+            assertThat(config.getExcludes()).containsExactly(exclude.stream().map(Paths::get).toArray(Path[]::new));
+        }
     }
 
     @Test
@@ -388,8 +462,8 @@ class PmdOperationTest {
 
     @Test
     void testPrependAuxClasspath() {
-        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).prependAuxClasspath("foo", "bar");
-        assertThat(pmd.prependAuxClasspath()).isEqualTo("foo" + File.pathSeparator + "bar");
+        var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).prependAuxClasspath(FOO, BAR);
+        assertThat(pmd.prependAuxClasspath()).isEqualTo(FOO + File.pathSeparator + BAR);
     }
 
     @Test
@@ -400,27 +474,26 @@ class PmdOperationTest {
 
     @Test
     void testRelativizeRoots() {
-        var foo = Path.of("foo/bar");
-        var bar = Path.of("bar/foo");
         var baz = Path.of("baz/foz");
 
-        var pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO)).relativizeRoots(foo).relativizeRoots(bar.toFile())
-                .relativizeRoots(baz.toString()).relativizeRoots(List.of(foo, bar, baz));
+        var pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO)).relativizeRoots(PATH_FOO).
+                relativizeRoots(PATH_BAR.toFile()).relativizeRoots(baz.toString())
+                .relativizeRoots(List.of(PATH_FOO, PATH_BAR, baz));
         var config = pmd.initConfiguration(COMMAND_NAME);
         assertThat(config.getRelativizeRoots()).isEqualTo(pmd.relativizeRoots())
-                .containsExactly(foo, bar, baz, foo, bar, baz);
+                .containsExactly(PATH_FOO, PATH_BAR, baz, PATH_FOO, PATH_BAR, baz);
 
         pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
-                .relativizeRootsFiles(List.of(foo.toFile(), bar.toFile(), baz.toFile()));
+                .relativizeRootsFiles(List.of(PATH_FOO.toFile(), PATH_BAR.toFile(), baz.toFile()));
         config = pmd.initConfiguration(COMMAND_NAME);
         assertThat(config.getRelativizeRoots()).as("List(File...)").isEqualTo(pmd.relativizeRoots())
-                .containsExactly(foo, bar, baz);
+                .containsExactly(PATH_FOO, PATH_BAR, baz);
 
         pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
-                .relativizeRootsStrings(List.of(foo.toString(), bar.toString(), baz.toString()));
+                .relativizeRootsStrings(List.of(PATH_FOO.toString(), PATH_BAR.toString(), baz.toString()));
         config = pmd.initConfiguration(COMMAND_NAME);
         assertThat(config.getRelativizeRoots()).as("List(String....)").isEqualTo(pmd.relativizeRoots())
-                .containsExactly(foo, bar, baz);
+                .containsExactly(PATH_FOO, PATH_BAR, baz);
     }
 
     @Test

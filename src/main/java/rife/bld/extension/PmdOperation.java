@@ -52,7 +52,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The list of paths to exclude.
      */
-    private final List<Path> excludes_ = new ArrayList<>();
+    private final Collection<Path> excludes_ = new ArrayList<>();
     /**
      * The input paths (source) list.
      */
@@ -141,6 +141,79 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * The number of threads.
      */
     private int threads_ = 1;
+
+    /**
+     * Adds paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludes(Path...)
+     * @since 1.2.0
+     */
+    public PmdOperation addExcludes(Path... excludes) {
+        return addExcludes(List.of(excludes));
+    }
+
+    /**
+     * Adds paths to exclude from the analysis.
+     *
+     * @param excludes paths to exclude
+     * @return this operation
+     * @see #excludes(Collection)
+     * @since 1.2.0
+     */
+    public PmdOperation addExcludes(Collection<Path> excludes) {
+        excludes_.addAll(excludes);
+        return this;
+    }
+
+    /**
+     * Adds paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesFiles(Collection)
+     * @since 1.2.0
+     */
+    public PmdOperation addExcludesFiles(Collection<File> excludes) {
+        return addExcludes(excludes.stream().map(File::toPath).toList());
+    }
+
+    /**
+     * Adds paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesFiles(File...)
+     * @since 1.2.0
+     */
+    public PmdOperation addExcludesFiles(File... excludes) {
+        return addExcludesFiles(List.of(excludes));
+    }
+
+    /**
+     * Adds paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesStrings(Collection)
+     * @since 1.2.0
+     */
+    public PmdOperation addExcludesStrings(Collection<String> excludes) {
+        return addExcludes(excludes.stream().map(Paths::get).toList());
+    }
+
+    /**
+     * Adds paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesStrings(String...)
+     * @since 1.2.0
+     */
+    public PmdOperation addExcludesStrings(String... excludes) {
+        return addExcludesStrings(List.of(excludes));
+    }
 
     /**
      * Adds paths to source files, or directories containing source files to analyze.\
@@ -322,23 +395,26 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds paths to exclude from the analysis.
+     * Sets paths to exclude from the analysis.
      *
      * @param excludes one or more paths to exclude
      * @return this operation
+     * @see #addExcludes(Path...)
      */
     public PmdOperation excludes(Path... excludes) {
-        excludes_.addAll(List.of(excludes));
+        excludes(List.of(excludes));
         return this;
     }
 
     /**
-     * Adds paths to exclude from the analysis.
+     * Sets paths to exclude from the analysis.
      *
      * @param excludes paths to exclude
      * @return this operation
+     * @see #addExcludes(Collection)
      */
     public PmdOperation excludes(Collection<Path> excludes) {
+        excludes_.clear();
         excludes_.addAll(excludes);
         return this;
     }
@@ -348,8 +424,58 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @return the exclude paths
      */
-    public List<Path> excludes() {
+    public Collection<Path> excludes() {
         return excludes_;
+    }
+
+    /**
+     * Sets paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesFiles(Collection)
+     * @since 1.2.0
+     */
+    public PmdOperation excludesFiles(Collection<File> excludes) {
+        excludes(excludes.stream().map(File::toPath).toList());
+        return this;
+    }
+
+    /**
+     * Sets paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesFiles(File...)
+     * @since 1.2.0
+     */
+    public PmdOperation excludesFiles(File... excludes) {
+        return excludesFiles(List.of(excludes));
+    }
+
+    /**
+     * Sets paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesStrings(Collection)
+     * @since 1.2.0
+     */
+    public PmdOperation excludesStrings(Collection<String> excludes) {
+        excludes(excludes.stream().map(Paths::get).toList());
+        return this;
+    }
+
+    /**
+     * Sets paths to exclude from the analysis.
+     *
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesStrings(String...)
+     * @since 1.2.0
+     */
+    public PmdOperation excludesStrings(String... excludes) {
+        return excludesStrings(List.of(excludes));
     }
 
     /**
@@ -519,7 +645,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
         // setExcludes
         if (!excludes_.isEmpty()) {
-            config.setExcludes(excludes_);
+            config.setExcludes(excludes_.stream().toList());
         }
 
         // setFailOnError
@@ -656,7 +782,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPath a collection of input paths
      * @return this operation
-     * @see #addInputPathsFiles(Collection) )
+     * @see #addInputPathsFiles(Collection)
      */
     public PmdOperation inputPathsFiles(Collection<File> inputPath) {
         return inputPaths(inputPath.stream().map(File::toPath).toList());
