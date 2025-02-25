@@ -45,7 +45,7 @@ public class PmdOperationBuild extends Project {
                 .include(dependency("com.uwyn.rife2", "bld", version(2, 2, 1)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
-                .include(dependency("org.slf4j", "slf4j-simple", version(2, 0, 16)));
+                .include(dependency("org.slf4j", "slf4j-simple", version(2, 0, 17)));
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 12, 0)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 12, 0)))
