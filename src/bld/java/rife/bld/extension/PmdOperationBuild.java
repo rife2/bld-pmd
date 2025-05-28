@@ -21,6 +21,9 @@ import rife.bld.publish.PublishDeveloper;
 import rife.bld.publish.PublishLicense;
 import rife.bld.publish.PublishScm;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static rife.bld.dependencies.Repository.*;
@@ -31,13 +34,13 @@ public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(1, 2, 3);
+        version = version(1, 2, 4, "SNAPSHOT");
 
         javaRelease = 17;
 
         downloadSources = true;
         autoDownloadPurge = true;
-        
+
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES, RIFE2_SNAPSHOTS);
 
         var pmd = version(7, 13, 0);
@@ -87,5 +90,36 @@ public class PmdOperationBuild extends Project {
 
     public static void main(String[] args) {
         new PmdOperationBuild().start(args);
+    }
+
+    @Override
+    public void test() throws Exception {
+        var testResultsDir = "build/test-results/test/";
+
+        var op = testOperation().fromProject(this);
+        op.testToolOptions().reportsDir(new File(testResultsDir));
+
+        Exception ex = null;
+        try {
+            op.execute();
+        } catch (Exception e) {
+            ex = e;
+        }
+
+        var xunitViewer = new File("/usr/bin/xunit-viewer");
+        if (xunitViewer.exists() && xunitViewer.canExecute()) {
+            var reportsDir = "build/reports/tests/test/";
+
+            Files.createDirectories(Path.of(reportsDir));
+
+            new ExecOperation()
+                    .fromProject(this)
+                    .command(xunitViewer.getPath(), "-r", testResultsDir, "-o", reportsDir + "index.html")
+                    .execute();
+        }
+
+        if (ex != null) {
+            throw ex;
+        }
     }
 }
