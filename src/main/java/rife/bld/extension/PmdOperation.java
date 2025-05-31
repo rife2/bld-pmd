@@ -20,6 +20,7 @@ import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.PmdAnalysis;
 import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.rule.RulePriority;
+import net.sourceforge.pmd.reporting.Report;
 import rife.bld.BaseProject;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
@@ -42,104 +43,40 @@ import java.util.logging.Logger;
  */
 public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
+     * The default logger.
+     */
+    public static final Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
+    /**
      * The default rule set.
      * <p>
      * Set to: {@code rulesets/java/quickstart.xml}
      */
     public static final String RULE_SET_DEFAULT = "rulesets/java/quickstart.xml";
-    private static final Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
+
     private static final String PMD_DIR = "pmd";
-    /**
-     * The list of paths to exclude.
-     */
     private final Collection<Path> excludes_ = new ArrayList<>();
-    /**
-     * The input paths (source) list.
-     */
     private final Collection<Path> inputPaths_ = new ArrayList<>();
-    /**
-     * The relative roots paths.
-     */
     private final Collection<Path> relativizeRoots_ = new ArrayList<>();
-    /**
-     * The rule sets list.
-     */
     private final Collection<String> ruleSets_ = new ArrayList<>();
-    /**
-     * The cache location.
-     */
     private Path cache_;
-    /**
-     * The encoding.
-     */
+    private boolean collectFilesRecursively_ = true;
     private Charset encoding_ = StandardCharsets.UTF_8;
-    /**
-     * The fail on error toggle.
-     */
     private boolean failOnError_ = true;
-    /**
-     * The fail on violation toggle.
-     */
     private boolean failOnViolation_;
-    /**
-     * The forced language.
-     */
     private LanguageVersion forcedLanguageVersion_;
-    /**
-     * The path of the ignore file
-     */
     private Path ignoreFile_;
-    /**
-     * The include line number toggle.
-     */
     private boolean includeLineNumber_ = true;
-    /**
-     * The incremental analysis toggle.
-     */
     private boolean incrementalAnalysis_ = true;
-    /**
-     * The input URI.
-     */
     private URI inputUri_;
-    /**
-     * The default language version(s).
-     */
     private Collection<LanguageVersion> languageVersions_ = new ArrayList<>();
-    /**
-     * The classpath to prepend.
-     */
     private String prependClasspath_;
-    /**
-     * The project reference.
-     */
     private BaseProject project_;
-    /**
-     * The path to the report page.
-     */
     private Path reportFile_;
-    /**
-     * The report format.
-     */
     private String reportFormat_ = "text";
-    /**
-     * The report properties.
-     */
     private Properties reportProperties_;
-    /**
-     * The rule priority.
-     */
     private RulePriority rulePriority_ = RulePriority.LOW;
-    /**
-     * The show suppressed flag.
-     */
     private boolean showSuppressed_;
-    /**
-     * THe suppressed marker.
-     */
     private String suppressedMarker_ = "NOPMD";
-    /**
-     * The number of threads.
-     */
     private int threads_ = 1;
 
     /**
@@ -216,18 +153,18 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds paths to source files, or directories containing source files to analyze.\
+     * Adds paths to source files or directories containing source files to analyze.\
      *
      * @param inputPath one or more paths
      * @return this operation
      * @see #inputPaths(Path...)
      */
     public PmdOperation addInputPaths(Path... inputPath) {
-        return inputPaths(List.of(inputPath));
+        return addInputPaths(List.of(inputPath));
     }
 
     /**
-     * Adds paths to source files, or directories containing source files to analyze.
+     * Adds paths to source files or directories containing source files to analyze.
      *
      * @param inputPath one or more paths
      * @return this operation
@@ -238,7 +175,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds paths to source files, or directories containing source files to analyze.
+     * Adds paths to source files or directories containing source files to analyze.
      *
      * @param inputPath one or more paths
      * @return this operation
@@ -249,7 +186,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds paths to source files, or directories containing source files to analyze.
+     * Adds paths to source files or directories containing source files to analyze.
      *
      * @param inputPath a collection of input paths
      * @return this operation
@@ -261,7 +198,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds paths to source files, or directories containing source files to analyze.
+     * Adds paths to source files or directories containing source files to analyze.
      *
      * @param inputPath a collection of input paths
      * @return this operation
@@ -272,7 +209,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds paths to source files, or directories containing source files to analyze.
+     * Adds paths to source files or directories containing source files to analyze.
      *
      * @param inputPath a collection of input paths
      * @return this operation
@@ -379,7 +316,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the default language version to be used for all input files.
      *
-     * @param languageVersion a collection language versions
+     * @param languageVersion a collection language version
      * @return this operation
      */
     public PmdOperation defaultLanguageVersions(Collection<LanguageVersion> languageVersion) {
@@ -733,7 +670,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files, or directories containing source files to analyze.
+     * Sets paths to source files or directories containing source files to analyze.
      *
      * @param inputPath one or more paths
      * @return this operation
@@ -744,7 +681,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files, or directories containing source files to analyze.
+     * Sets paths to source files or directories containing source files to analyze.
      * <p>
      * Previous entries are disregarded.
      *
@@ -757,7 +694,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files, or directories containing source files to analyze.
+     * Sets paths to source files or directories containing source files to analyze.
      * <p>
      * Previous entries are disregarded.
      *
@@ -770,7 +707,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets  paths to source files, or directories containing source files to analyze.
+     * Sets paths to source files or directories containing source files to analyze.
      * <p>
      * Previous entries are disregarded.
      *
@@ -785,7 +722,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Returns paths to source files, or directories containing source files to analyze.
+     * Returns paths to source files or directories containing source files to analyze.
      *
      * @return the input paths
      */
@@ -794,7 +731,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets  paths to source files, or directories containing source files to analyze.
+     * Sets paths to source files or directories containing source files to analyze.
      * <p>
      * Previous entries are disregarded.
      *
@@ -807,7 +744,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets  paths to source files, or directories containing source files to analyze.
+     * Sets paths to source files or directories containing source files to analyze.
      * <p>
      * Previous entries are disregarded.
      *
@@ -832,7 +769,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the default language versions.
      *
-     * @param languageVersions a collection language versions
+     * @param languageVersions a collection language version
      * @return this operation
      */
     public PmdOperation languageVersions(Collection<LanguageVersion> languageVersions) {
@@ -867,10 +804,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return the number of violations
      * @throws ExitStatusException if an error occurs
      */
-    @SuppressWarnings({"PMD.CloseResource", "PMD.AvoidInstantiatingObjectsInLoops"})
-    public int performPmdAnalysis(String commandName, PMDConfiguration config) throws ExitStatusException {
+    @SuppressWarnings("PMD.CloseResource")
+    public PmdAnalysisResults performPmdAnalysis(String commandName, PMDConfiguration config)
+            throws ExitStatusException {
         var pmd = PmdAnalysis.create(config);
         var report = pmd.performAnalysisAndCollectReport();
+
         if (LOGGER.isLoggable(Level.INFO) && !silent()) {
             LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths_});
             LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets_});
@@ -878,52 +817,48 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
         var numViolations = report.getViolations().size();
         if (numViolations > 0) {
-            for (var v : report.getViolations()) {
-                if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-                    final String msg;
-                    if (includeLineNumber_) {
-                        msg = "[{0}] {1}:{2}\n\t{3} ({4})\n\t\t--> {5}";
-                    } else {
-                        msg = "[{0}] {1} (line: {2})\n\t{3} ({4})\n\t\t--> {5}";
-                    }
-                    LOGGER.log(Level.WARNING, msg,
-                            new Object[]{commandName,
-                                    v.getFileId().getUriString(),
-                                    v.getBeginLine(),
-                                    v.getRule().getName(),
-                                    v.getRule().getExternalInfoUrl() //TODO bug in PMD?
-                                            .replace("${pmd.website.baseurl}",
-                                            "https://docs.pmd-code.org/latest"),
-                                    v.getDescription()});
-                }
-            }
-
-            var violations = String.format(
-                    "[%s] %d rule violations were found. See the report at: %s", commandName, numViolations,
-                    config.getReportFilePath().toUri());
-            if (config.isFailOnViolation()) {
-                if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                    LOGGER.log(Level.SEVERE, violations);
-                }
-                throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-            } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-                LOGGER.warning(violations);
-            }
+            printViolations(commandName, config, report);
         } else if (pmd.getReporter().numErrors() > 0 && failOnError_) {
             throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        } else {
-            var rules = pmd.getRulesets();
-            if (!rules.isEmpty()) {
-                int count = 0;
-                for (var rule : rules) {
-                    count += rule.getRules().size();
-                }
-                if (LOGGER.isLoggable(Level.INFO) && !silent()) {
-                    LOGGER.info(String.format("[%s] %d rules were checked.", commandName, count));
-                }
+        }
+
+        int rulesChecked = 0;
+        var rules = pmd.getRulesets();
+        if (!rules.isEmpty()) {
+            for (var rule : rules) {
+                rulesChecked += rule.getRules().size();
+            }
+            if (LOGGER.isLoggable(Level.INFO) && !silent()) {
+                LOGGER.info(String.format("[%s] %d rules were checked.", commandName, rulesChecked));
             }
         }
-        return numViolations;
+
+        var result = new PmdAnalysisResults(
+                numViolations,
+                report.getSuppressedViolations().size(),
+                pmd.getReporter().numErrors(),
+                report.getProcessingErrors().size(),
+                report.getConfigurationErrors().size(),
+                rulesChecked
+        );
+
+        if (result.processingErrors() > 0 && LOGGER.isLoggable(Level.WARNING) && !silent()) {
+            for (var err : report.getProcessingErrors()) {
+                LOGGER.warning(String.format("[%s] %s", commandName, err.getMsg()));
+            }
+        }
+
+        if (result.configurationErrors() > 0 && LOGGER.isLoggable(Level.WARNING) && !silent()) {
+            for (var err : report.getConfigurationErrors()) {
+                LOGGER.warning(String.format("[%s] %s", commandName, err.issue()));
+            }
+        }
+
+        if (LOGGER.isLoggable(Level.FINEST) && !silent()) {
+            LOGGER.finest(result.toString());
+        }
+
+        return result;
     }
 
     /**
@@ -931,7 +866,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * is currently configured, the ClassLoader used to load the PMDConfiguration class will be used as the parent
      * ClassLoader of the created ClassLoader.
      * <p>
-     * If the classpath String looks like a URL to a file (i.e. starts with {@code file://}) the file will be read with
+     * If the classpath String looks like a URL to a file (i.e., starts with {@code file://}) the file will be read with
      * each line representing an entry on the classpath.
      *
      * @param classpath one or more classpath
@@ -949,6 +884,44 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public String prependAuxClasspath() {
         return prependClasspath_;
+    }
+
+    private void printViolations(String commandName, PMDConfiguration config, Report report)
+            throws ExitStatusException {
+        for (var v : report.getViolations()) {
+            if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+                final String msg;
+                if (includeLineNumber_) {
+                    msg = "[%s] %s:%d\n\t%s (%s)\n\t\t--> %s";
+                } else {
+                    msg = "[%s] %s (line: %d)\n\t%s (%s)\n\t\t--> %s";
+                }
+                LOGGER.log(Level.WARNING,
+                        String.format(msg,
+                                commandName,
+                                v.getFileId().getUriString(),
+                                v.getBeginLine(),
+                                v.getRule().getName(),
+                                v.getRule().getExternalInfoUrl(),
+                                v.getDescription()));
+            }
+        }
+
+        var violations = new StringBuilder(
+                String.format("[%s] %d rule violations were found.", commandName, report.getViolations().size()));
+
+        if (config.getReportFilePath() != null) {
+            violations.append(" See the report at: ").append(config.getReportFilePath().toUri());
+        }
+
+        if (config.isFailOnViolation()) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.log(Level.SEVERE, violations.toString());
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+            LOGGER.warning(violations.toString());
+        }
     }
 
     /**
