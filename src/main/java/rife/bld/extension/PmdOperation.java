@@ -354,6 +354,19 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
+     * When specified, any directory mentioned with {@link #inputPaths()} will only be searched for files that are
+     * direct children. By default, subdirectories are recursively included.
+     *
+     * @param collectFilesRecursively whether to collect files recursively or not
+     * @return this operation
+     * @since 1.2.4
+     */
+    public PmdOperation collectFilesRecursively(boolean collectFilesRecursively) {
+        this.collectFilesRecursively_ = collectFilesRecursively;
+        return this;
+    }
+
+    /**
      * Sets the default language version to be used for all input files.
      *
      * @param languageVersion one or more language version
@@ -624,6 +637,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
         // addRelativizeRoots
         config.addRelativizeRoots(relativizeRoots_.stream().toList());
+
+        // collectFilesRecursively
+        if (!collectFilesRecursively_) {
+            config.collectFilesRecursively(false);
+        }
 
         // prependAuxClasspath
         if (prependClasspath_ != null) {
