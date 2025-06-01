@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package rife.bld.extension;
+package rife.bld.extension.pmd;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

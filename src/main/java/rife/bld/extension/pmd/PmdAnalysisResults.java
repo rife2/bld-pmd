@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package rife.bld.extension;
+package rife.bld.extension.pmd;
 
 /**
  * Represents the results of a PMD analysis, containing various counts

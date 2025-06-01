@@ -22,6 +22,7 @@ import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.rule.RulePriority;
 import net.sourceforge.pmd.reporting.Report;
 import rife.bld.BaseProject;
+import rife.bld.extension.pmd.PmdAnalysisResults;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 
@@ -804,61 +805,66 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return the number of violations
      * @throws ExitStatusException if an error occurs
      */
-    @SuppressWarnings("PMD.CloseResource")
     public PmdAnalysisResults performPmdAnalysis(String commandName, PMDConfiguration config)
             throws ExitStatusException {
-        var pmd = PmdAnalysis.create(config);
-        var report = pmd.performAnalysisAndCollectReport();
+        try (var pmd = PmdAnalysis.create(config)) {
+            var report = pmd.performAnalysisAndCollectReport();
 
-        if (LOGGER.isLoggable(Level.INFO) && !silent()) {
-            LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths_});
-            LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets_});
-        }
-
-        var numViolations = report.getViolations().size();
-        if (numViolations > 0) {
-            printViolations(commandName, config, report);
-        } else if (pmd.getReporter().numErrors() > 0 && failOnError_) {
-            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        }
-
-        int rulesChecked = 0;
-        var rules = pmd.getRulesets();
-        if (!rules.isEmpty()) {
-            for (var rule : rules) {
-                rulesChecked += rule.getRules().size();
-            }
             if (LOGGER.isLoggable(Level.INFO) && !silent()) {
-                LOGGER.info(String.format("[%s] %d rules were checked.", commandName, rulesChecked));
+                LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths_});
+                LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets_});
             }
-        }
 
-        var result = new PmdAnalysisResults(
-                numViolations,
-                report.getSuppressedViolations().size(),
-                pmd.getReporter().numErrors(),
-                report.getProcessingErrors().size(),
-                report.getConfigurationErrors().size(),
-                rulesChecked
-        );
-
-        if (result.processingErrors() > 0 && LOGGER.isLoggable(Level.WARNING) && !silent()) {
-            for (var err : report.getProcessingErrors()) {
-                LOGGER.warning(String.format("[%s] %s", commandName, err.getMsg()));
+            var numViolations = report.getViolations().size();
+            if (numViolations > 0) {
+                printViolations(commandName, config, report);
+            } else if (pmd.getReporter().numErrors() > 0 && failOnError_) {
+                throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
             }
-        }
 
-        if (result.configurationErrors() > 0 && LOGGER.isLoggable(Level.WARNING) && !silent()) {
-            for (var err : report.getConfigurationErrors()) {
-                LOGGER.warning(String.format("[%s] %s", commandName, err.issue()));
+            var rulesChecked = 0;
+            var rules = pmd.getRulesets();
+            if (!rules.isEmpty()) {
+                for (var rule : rules) {
+                    rulesChecked += rule.getRules().size();
+                }
             }
-        }
 
-        if (LOGGER.isLoggable(Level.FINEST) && !silent()) {
-            LOGGER.finest(result.toString());
-        }
+            var result = new PmdAnalysisResults(
+                    numViolations,
+                    report.getSuppressedViolations().size(),
+                    pmd.getReporter().numErrors(),
+                    report.getProcessingErrors().size(),
+                    report.getConfigurationErrors().size(),
+                    rulesChecked
+            );
 
-        return result;
+            if (!silent()) {
+                if (LOGGER.isLoggable(Level.INFO)) {
+                    LOGGER.info(String.format("[%s] %d rules were checked.", commandName, result.rulesChecked()));
+                }
+
+                if (LOGGER.isLoggable(Level.WARNING)) {
+                    if (result.processingErrors() > 0) {
+                        for (var err : report.getProcessingErrors()) {
+                            LOGGER.warning(String.format("[%s] %s", commandName, err.getMsg()));
+                        }
+                    }
+
+                    if (result.configurationErrors() > 0) {
+                        for (var err : report.getConfigurationErrors()) {
+                            LOGGER.warning(String.format("[%s] %s", commandName, err.issue()));
+                        }
+                    }
+                }
+
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.finest(result.toString());
+                }
+            }
+
+            return result;
+        }
     }
 
     /**

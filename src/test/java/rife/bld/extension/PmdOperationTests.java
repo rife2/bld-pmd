@@ -622,6 +622,8 @@ class PmdOperationTests {
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
+                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).configurationErrors())
+                        .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
             @Test
