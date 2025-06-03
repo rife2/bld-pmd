@@ -297,7 +297,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param collectFilesRecursively whether to collect files recursively or not
      * @return this operation
-     * @since 1.2.4
+     * @since 1.3.0
      */
     public PmdOperation collectFilesRecursively(boolean collectFilesRecursively) {
         this.collectFilesRecursively_ = collectFilesRecursively;

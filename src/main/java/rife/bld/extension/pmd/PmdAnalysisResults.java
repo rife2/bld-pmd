@@ -26,7 +26,7 @@ package rife.bld.extension.pmd;
  * @param processingErrors     The number of processing errors returned during the analysis
  * @param configurationErrors  The number of processing errors returning during the analysis
  * @param rulesChecked         The number of rules checked during the analysis
- * @since 1.2.4
+ * @since 1.3.0
  */
 public record PmdAnalysisResults(
         int violations,
