@@ -16,6 +16,7 @@
 
 package rife.bld.extension;
 
+import rife.bld.BuildCommand;
 import rife.bld.Project;
 import rife.bld.publish.PublishDeveloper;
 import rife.bld.publish.PublishLicense;
@@ -31,6 +32,12 @@ import static rife.bld.dependencies.Scope.*;
 import static rife.bld.operations.JavadocOptions.DocLinkOption.NO_MISSING;
 
 public class PmdOperationBuild extends Project {
+    final PmdOperation pmdOp = new PmdOperation()
+            .fromProject(this)
+            .excludes(srcTestResourcesDirectory().toPath())
+            .failOnViolation(true)
+            .ruleSets("config/pmd.xml");
+
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
@@ -90,6 +97,16 @@ public class PmdOperationBuild extends Project {
 
     public static void main(String[] args) {
         new PmdOperationBuild().start(args);
+    }
+
+    @BuildCommand(summary = "Runs PMD analysis")
+    public void pmd() throws Exception {
+        pmdOp.execute();
+    }
+
+    @BuildCommand(value = "pmd-cli", summary = "Runs PMD analysis (CLI)")
+    public void pmdCli() throws Exception {
+        pmdOp.includeLineNumber(false).execute();
     }
 
     @Override
