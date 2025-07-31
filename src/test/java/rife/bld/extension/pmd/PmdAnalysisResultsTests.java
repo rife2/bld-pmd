@@ -48,10 +48,43 @@ class PmdAnalysisResultsTests {
         }
 
         @Test
+        void hasNoErrorsWithViolations() {
+            var results = new PmdAnalysisResults(
+                    10, 5, 0, 0, 0, 50);
+            assertThat(results.hasNoErrors()).isTrue();
+        }
+
+
+        @Test
         void hasProcessingErrors() {
             var results = new PmdAnalysisResults(
                     0, 0, 0, 1, 0, 0);
             assertThat(results.hasNoErrors()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("Violations Tests")
+    class ViolationsTests {
+        @Test
+        void hasNoViolations() {
+            var results = new PmdAnalysisResults(
+                    0, 0, 0, 0, 0, 0);
+            assertThat(results.hasNoViolations()).isTrue();
+        }
+
+        @Test
+        void hasSuppressedViolations() {
+            var results = new PmdAnalysisResults(
+                    0, 1, 0, 0, 0, 0);
+            assertThat(results.hasNoViolations()).isFalse();
+        }
+
+        @Test
+        void hasViolations() {
+            var results = new PmdAnalysisResults(
+                    1, 0, 0, 0, 0, 0);
+            assertThat(results.hasNoViolations()).isFalse();
         }
     }
 }

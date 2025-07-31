@@ -39,9 +39,18 @@ public record PmdAnalysisResults(
     /**
      * Checks if the analysis results indicate no errors of any type.
      *
-     * @return {@code true} if there are no errors, {@code false} otherwise.
+     * @return {@code true} if there are no errors, {@code false} otherwise
      */
     public boolean hasNoErrors() {
         return errors == 0 && processingErrors == 0 && configurationErrors == 0;
+    }
+
+    /**
+     * Determines whether the analysis results indicate no violations of any type.
+     *
+     * @return {@code true} if there are no violations, {@code false} otherwise
+     */
+    public boolean hasNoViolations() {
+        return violations == 0 && suppressedViolations == 0;
     }
 }
