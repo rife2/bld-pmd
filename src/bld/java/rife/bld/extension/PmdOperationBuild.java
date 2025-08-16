@@ -76,7 +76,7 @@ public class PmdOperationBuild extends Project {
                 .info()
                 .groupId("com.uwyn.rife2")
                 .artifactId("bld-pmd")
-                .description("bld Extension to Perform Static Code Analysis with PMD")
+                .description("PMD Extension for bld")
                 .url("https://github.com/rife2/bld-pmd")
                 .developer(new PublishDeveloper()
                         .id("ethauvin").name("Erik C. Thauvin")
