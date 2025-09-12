@@ -10,6 +10,10 @@
     <pattern value="rife.bld.extension.PmdOperation" method="addRelativizeRoot" />
     <pattern value="rife.bld.extension.PmdOperation" method="addRuleSet" />
     <pattern value="rife.bld.extension.PmdOperationBuild" method="jacoco" />
+    <pattern value="rife.bld.extension.PmdOperationBuild" method="pmd" />
+    <pattern value="rife.bld.extension.PmdOperationBuild" method="pmdCli" />
+    <pattern value="rife.bld.extension.PmdOperationBuild" />
+    <pattern value="rife.bld.extension.PmdOperationBuild" method="reporter" />
   </component>
   <component name="PDMPlugin">
     <option name="customRuleSets">
