@@ -1038,7 +1038,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Returns the path to the report page.
+     * Returns the path to the report file.
      *
      * @return the path
      */

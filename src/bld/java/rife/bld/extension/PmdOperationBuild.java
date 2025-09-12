@@ -52,15 +52,21 @@ public class PmdOperationBuild extends Project {
 
         var pmd = version(7, 16, 0);
         scope(compile)
-                .include(dependency("com.uwyn.rife2", "bld", version(2, 3, 0)))
+                .include(dependency("com.uwyn.rife2", "bld",
+                        version(2, 3, 0)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(runtime)
-                .include(dependency("org.slf4j", "slf4j-simple", version(2, 0, 17)));
+                .include(dependency("org.slf4j", "slf4j-simple",
+                        version(2, 0, 17)));
         scope(test)
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 13, 4)))
+                .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
+                        version(0, 9, 3, "SNAPSHOT")))
+                .include(dependency("org.junit.jupiter", "junit-jupiter",
+                        version(5, 13, 4)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone",
                         version(1, 13, 4)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 27, 4)));
+                .include(dependency("org.assertj", "assertj-core",
+                        version(3, 27, 4)));
 
         javadocOperation()
                 .javadocOptions()

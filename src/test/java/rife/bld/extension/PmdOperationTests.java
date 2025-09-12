@@ -19,12 +19,13 @@ package rife.bld.extension;
 import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.lang.LanguageRegistry;
 import net.sourceforge.pmd.lang.rule.RulePriority;
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import rife.bld.BaseProject;
+import rife.bld.extension.testing.LoggingExtension;
 import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
@@ -39,8 +40,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -51,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@ExtendWith(LoggingExtension.class)
 class PmdOperationTests {
     private static final String ANALYSIS_FAILURE = "analysis should fail";
     private static final String ANALYSIS_SUCCESS = "analysis should succeed";
@@ -66,22 +66,16 @@ class PmdOperationTests {
     private static final File FILE_BAR = new File(BAR);
     private static final String FOO = "foo";
     private static final File FILE_FOO = new File(FOO);
+
+    @RegisterExtension
+    @SuppressWarnings({"unused"})
+    private static final LoggingExtension LOGGING_EXTENSION = new LoggingExtension(PmdOperation.class.getName());
+
     private static final Path PATH_BAR = Path.of(BAR);
     private static final Path PATH_FOO = Path.of(FOO);
     private static final String PERFORMANCE_XML = "category/java/performance.xml";
     private static final String SECURITY_XML = "category/java/security.xml";
     private static final String TEST = "test";
-
-    @BeforeAll
-    public static void beforeAll() {
-        var consoleHandler = new ConsoleHandler();
-        var logger = PmdOperation.LOGGER;
-
-        consoleHandler.setLevel(Level.ALL);
-        logger.addHandler(consoleHandler);
-        logger.setLevel(Level.ALL);
-        logger.setUseParentHandlers(false);
-    }
 
     PmdOperation newPmdOperation() {
         return new PmdOperation()
@@ -531,6 +525,7 @@ class PmdOperationTests {
 
         @Nested
         @DisplayName("Reporting Tests")
+        @SuppressWarnings("PMD.RelianceOnDefaultCharset")
         class ReportingTests {
             @Test
             void reportFile() throws FileNotFoundException, ExitStatusException {
@@ -561,11 +556,9 @@ class PmdOperationTests {
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
-                try (var softly = new AutoCloseableSoftAssertions()) {
-                    try (var br = Files.newBufferedReader(pmd.reportFile())) {
-                        softly.assertThat(br.readLine()).as("XML report for %s", pmd.reportFile().toString())
-                                .startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-                    }
+                try (var br = Files.newBufferedReader(pmd.reportFile())) {
+                    assertThat(br.readLine()).as("XML report for %s", pmd.reportFile().toString())
+                            .startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
                 }
             }
 
@@ -740,16 +733,19 @@ class PmdOperationTests {
         void execute() throws ExitStatusException {
             var pmd = new PmdOperation().fromProject(new BaseProject());
 
-            assertThat(pmd.inputPaths()).containsExactly(Paths.get("src/main").toAbsolutePath(),
-                    Paths.get("src/test").toAbsolutePath());
-
-            pmd.inputPaths().clear();
-            pmd.inputPaths("src/main/java", "src/test/java")
-                    .ruleSets("config/pmd.xml");
+            pmd.inputPaths("src/main/java", "src/test/java").ruleSets("config/pmd.xml");
 
             assertThat(pmd.ruleSets()).containsExactly("config/pmd.xml");
             assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                     .as(ANALYSIS_SUCCESS).isEqualTo(0);
+        }
+
+        @Test
+        void executeDefaultInputPaths() {
+            var pmd = new PmdOperation().fromProject(new BaseProject());
+
+            assertThat(pmd.inputPaths()).containsExactly(Paths.get("src/main").toAbsolutePath(),
+                    Paths.get("src/test").toAbsolutePath());
         }
 
         @Test
