@@ -54,6 +54,9 @@ public class PmdOperationBuild extends Project {
                 .include(dependency("com.uwyn.rife2", "bld",
                         version(2, 3, 0)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
+        scope(provided)
+                .include(dependency("com.github.spotbugs", "spotbugs-annotations",
+                        version(4, 9, 8)));
         scope(runtime)
                 .include(dependency("org.slf4j", "slf4j-simple",
                         version(2, 0, 17)));
@@ -99,6 +102,15 @@ public class PmdOperationBuild extends Project {
                 .signPassphrase(property("sign.passphrase"));
     }
 
+    @Override
+    public void test() throws Exception {
+        var testResultsDir = "build/test-results/test/";
+
+        var op = testOperation().fromProject(this);
+        op.testToolOptions().reportsDir(new File(testResultsDir));
+        op.execute();
+    }
+
     public static void main(String[] args) {
         new PmdOperationBuild().start(args);
     }
@@ -121,12 +133,12 @@ public class PmdOperationBuild extends Project {
                 .execute();
     }
 
-    @Override
-    public void test() throws Exception {
-        var testResultsDir = "build/test-results/test/";
-
-        var op = testOperation().fromProject(this);
-        op.testToolOptions().reportsDir(new File(testResultsDir));
-        op.execute();
+    @BuildCommand(summary = "Runs SpotBugs on this project")
+    public void spotbugs() throws Exception {
+        new SpotBugsOperation()
+                .fromProject(this)
+                .home("/opt/spotbugs")
+                .sourcePath(new File(srcMainDirectory(), "kotlin"))
+                .execute();
     }
 }

@@ -27,6 +27,11 @@ public class BestPractices {
     private StringBuffer buffer; // potential memory leak as an instance variable;
     private String[] x;
 
+    public void foo(String[] param) {
+        // Don't do this, make a copy of the array at least
+        this.x = param;
+    }
+
     void bar(int a) {
         switch (a) {
             case 1: // do something
@@ -36,11 +41,6 @@ public class BestPractices {
             case 2:
                 break;
         }
-    }
-
-    public void foo(String[] param) {
-        // Don't do this, make a copy of the array at least
-        this.x = param;
     }
 
     private void greet(String name) {

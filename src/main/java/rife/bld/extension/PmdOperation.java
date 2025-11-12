@@ -16,6 +16,7 @@
 
 package rife.bld.extension;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.PmdAnalysis;
 import net.sourceforge.pmd.lang.LanguageVersion;
@@ -57,7 +58,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     private static final String PMD_DIR = "pmd";
     private final Collection<Path> excludes_ = new ArrayList<>();
     private final Collection<Path> inputPaths_ = new ArrayList<>();
+    private final Collection<LanguageVersion> languageVersions_ = new ArrayList<>();
     private final Collection<Path> relativizeRoots_ = new ArrayList<>();
+    private final Properties reportProperties_ = new Properties();
     private final Collection<String> ruleSets_ = new ArrayList<>();
     private Path cache_;
     private boolean collectFilesRecursively_ = true;
@@ -69,16 +72,30 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     private boolean includeLineNumber_ = true;
     private boolean incrementalAnalysis_ = true;
     private URI inputUri_;
-    private Collection<LanguageVersion> languageVersions_ = new ArrayList<>();
     private String prependClasspath_;
     private BaseProject project_;
     private Path reportFile_;
     private String reportFormat_ = "text";
-    private Properties reportProperties_;
     private RulePriority rulePriority_ = RulePriority.LOW;
     private boolean showSuppressed_;
     private String suppressedMarker_ = "NOPMD";
     private int threads_ = 1;
+
+    /**
+     * Performs the PMD code analysis operation.
+     */
+    @Override
+    public void execute() throws Exception {
+        if (project_ == null) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.log(Level.SEVERE, "A project is required to run this operation.");
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        }
+
+        var commandName = project_.getCurrentCommandName();
+        performPmdAnalysis(commandName, initConfiguration(commandName));
+    }
 
     /**
      * Adds paths to exclude from the analysis.
@@ -375,6 +392,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @return the exclude paths
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Collection<Path> excludes() {
         return excludes_;
     }
@@ -427,22 +445,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation excludesStrings(String... excludes) {
         return excludesStrings(List.of(excludes));
-    }
-
-    /**
-     * Performs the PMD code analysis operation.
-     */
-    @Override
-    public void execute() throws Exception {
-        if (project_ == null) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.log(Level.SEVERE, "A project is required to run this operation.");
-            }
-            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        }
-
-        var commandName = project_.getCurrentCommandName();
-        performPmdAnalysis(commandName, initConfiguration(commandName));
     }
 
     /**
@@ -505,6 +507,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param project the project
      * @return this operation
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public PmdOperation fromProject(BaseProject project) {
         project_ = project;
 
@@ -545,7 +548,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Enables or disables including the line number for the beginning of the violation in the analyzed source file URI.
+     * Enables or disables line number in source file URIs.
      * <p>
      * While clicking on the URI works in IntelliJ IDEA, Visual Studio Code, etc.; it might not in terminal emulators.
      * <p>
@@ -595,7 +598,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         }
 
         // setDefaultLanguageVersions
-        if (languageVersions_ != null) {
+        if (!languageVersions_.isEmpty()) {
             config.setDefaultLanguageVersions(languageVersions_.stream().toList());
         }
 
@@ -650,9 +653,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         config.setReportFormat(reportFormat_);
 
         // setReportProperties
-        if (reportProperties_ != null) {
-            config.setReportProperties(reportProperties_);
-        }
+        config.setReportProperties(reportProperties_);
 
         // setRuleSets
         config.setRuleSets(ruleSets_.stream().toList());
@@ -727,6 +728,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @return the input paths
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Collection<Path> inputPaths() {
         return inputPaths_;
     }
@@ -774,7 +776,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation languageVersions(Collection<LanguageVersion> languageVersions) {
-        languageVersions_ = languageVersions;
+        languageVersions_.clear();
+        languageVersions_.addAll(languageVersions);
         return this;
     }
 
@@ -783,6 +786,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @return the language versions
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Collection<LanguageVersion> languageVersions() {
         return languageVersions_;
     }
@@ -892,44 +896,6 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         return prependClasspath_;
     }
 
-    private void printViolations(String commandName, PMDConfiguration config, Report report)
-            throws ExitStatusException {
-        for (var v : report.getViolations()) {
-            if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-                final String msg;
-                if (includeLineNumber_) {
-                    msg = "[%s] %s:%d\n\t%s (%s)\n\t\t--> %s";
-                } else {
-                    msg = "[%s] %s (line: %d)\n\t%s (%s)\n\t\t--> %s";
-                }
-                LOGGER.log(Level.WARNING,
-                        String.format(msg,
-                                commandName,
-                                v.getFileId().getUriString(),
-                                v.getBeginLine(),
-                                v.getRule().getName(),
-                                v.getRule().getExternalInfoUrl(),
-                                v.getDescription()));
-            }
-        }
-
-        var violations = new StringBuilder(
-                String.format("[%s] %d rule violations were found.", commandName, report.getViolations().size()));
-
-        if (config.getReportFilePath() != null) {
-            violations.append(" See the report at: ").append(config.getReportFilePath().toUri());
-        }
-
-        if (config.isFailOnViolation()) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.log(Level.SEVERE, violations.toString());
-            }
-            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-            LOGGER.warning(violations.toString());
-        }
-    }
-
     /**
      * Adds several paths to shorten paths that are output in the report.
      *
@@ -980,6 +946,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @return the relative root paths
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Collection<Path> relativizeRoots() {
         return relativizeRoots_;
     }
@@ -1064,7 +1031,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation reportProperties(Properties reportProperties) {
-        reportProperties_ = reportProperties;
+        reportProperties_.clear();
+        reportProperties_.putAll(reportProperties);
         return this;
     }
 
@@ -1123,6 +1091,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @return the rule sets
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Collection<String> ruleSets() {
         return ruleSets_;
     }
@@ -1169,5 +1138,44 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     public PmdOperation uri(URI inputUri) {
         inputUri_ = inputUri;
         return this;
+    }
+
+    private void printViolations(String commandName, PMDConfiguration config, Report report)
+            throws ExitStatusException {
+        for (var v : report.getViolations()) {
+            if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+                final String msg;
+                if (includeLineNumber_) {
+                    msg = "[%s] %s:%d\n\t%s (%s)\n\t\t--> %s";
+                } else {
+                    msg = "[%s] %s (line: %d)\n\t%s (%s)\n\t\t--> %s";
+                }
+                LOGGER.log(Level.WARNING,
+                        String.format(msg,
+                                commandName,
+                                v.getFileId().getUriString(),
+                                v.getBeginLine(),
+                                v.getRule().getName(),
+                                v.getRule().getExternalInfoUrl(),
+                                v.getDescription()));
+            }
+        }
+
+        var violations = new StringBuilder(
+                String.format("[%s] %d rule violations were found.", commandName, report.getViolations().size()));
+
+        var reportFilePath = config.getReportFilePath();
+        if (reportFilePath != null) {
+            violations.append(" See the report at: ").append(reportFilePath.toUri());
+        }
+
+        if (config.isFailOnViolation()) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.log(Level.SEVERE, violations.toString());
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+            LOGGER.warning(violations.toString());
+        }
     }
 }
