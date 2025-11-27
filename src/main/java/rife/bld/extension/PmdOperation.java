@@ -43,6 +43,7 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * The default logger.
@@ -56,12 +57,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     public static final String RULE_SET_DEFAULT = "rulesets/java/quickstart.xml";
 
     private static final String PMD_DIR = "pmd";
-    private final Collection<Path> excludes_ = new ArrayList<>();
-    private final Collection<Path> inputPaths_ = new ArrayList<>();
-    private final Collection<LanguageVersion> languageVersions_ = new ArrayList<>();
-    private final Collection<Path> relativizeRoots_ = new ArrayList<>();
+    private final List<Path> excludes_ = new ArrayList<>();
+    private final List<Path> inputPaths_ = new ArrayList<>();
+    private final List<LanguageVersion> languageVersions_ = new ArrayList<>();
+    private final List<Path> relativizeRoots_ = new ArrayList<>();
     private final Properties reportProperties_ = new Properties();
-    private final Collection<String> ruleSets_ = new ArrayList<>();
+    private final List<String> ruleSets_ = new ArrayList<>();
     private Path cache_;
     private boolean collectFilesRecursively_ = true;
     private Charset encoding_ = StandardCharsets.UTF_8;
@@ -393,7 +394,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return the exclude paths
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Collection<Path> excludes() {
+    public List<Path> excludes() {
         return excludes_;
     }
 
@@ -729,7 +730,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return the input paths
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Collection<Path> inputPaths() {
+    public List<Path> inputPaths() {
         return inputPaths_;
     }
 
@@ -787,7 +788,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return the language versions
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Collection<LanguageVersion> languageVersions() {
+    public List<LanguageVersion> languageVersions() {
         return languageVersions_;
     }
 
@@ -947,7 +948,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return the relative root paths
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Collection<Path> relativizeRoots() {
+    public List<Path> relativizeRoots() {
         return relativizeRoots_;
     }
 
@@ -1000,6 +1001,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param reportFile the report file path
      * @return this operation
      */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public PmdOperation reportFile(String reportFile) {
         return reportFile(Paths.get(reportFile));
     }
@@ -1092,7 +1094,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return the rule sets
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Collection<String> ruleSets() {
+    public List<String> ruleSets() {
         return ruleSets_;
     }
 
