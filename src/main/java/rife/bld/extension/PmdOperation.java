@@ -43,6 +43,7 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
