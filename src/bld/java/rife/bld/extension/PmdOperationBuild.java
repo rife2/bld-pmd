@@ -30,16 +30,10 @@ import static rife.bld.dependencies.Scope.*;
 import static rife.bld.operations.JavadocOptions.DocLinkOption.NO_MISSING;
 
 public class PmdOperationBuild extends Project {
-    final PmdOperation pmdOp = new PmdOperation()
-            .fromProject(this)
-            .excludes(srcTestResourcesDirectory().toPath())
-            .failOnViolation(true)
-            .ruleSets("config/pmd.xml");
-
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(1, 3, 5, "SNAPSHOT");
+        version = version(1, 4, 0);
 
         javaRelease = 17;
 
@@ -58,7 +52,8 @@ public class PmdOperationBuild extends Project {
                 .include(dependency("com.github.spotbugs", "spotbugs-annotations",
                         version(4, 9, 8)));
         scope(runtime)
-                .include(dependency("org.slf4j", "slf4j-simple",
+                .include(dependency(
+                        "org.slf4j", "slf4j-simple",
                         version(2, 0, 17)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
@@ -115,16 +110,6 @@ public class PmdOperationBuild extends Project {
         new PmdOperationBuild().start(args);
     }
 
-    @BuildCommand(summary = "Runs PMD analysis")
-    public void pmd() throws Exception {
-        pmdOp.execute();
-    }
-
-    @BuildCommand(value = "pmd-cli", summary = "Runs PMD analysis (CLI)")
-    public void pmdCli() throws Exception {
-        pmdOp.includeLineNumber(false).execute();
-    }
-
     @BuildCommand(summary = "Runs the JUnit reporter")
     public void reporter() throws Exception {
         new JUnitReporterOperation()
@@ -138,7 +123,6 @@ public class PmdOperationBuild extends Project {
         new SpotBugsOperation()
                 .fromProject(this)
                 .home("/opt/spotbugs")
-                .sourcePath(new File(srcMainDirectory(), "kotlin"))
                 .execute();
     }
 }
