@@ -24,6 +24,7 @@ import net.sourceforge.pmd.lang.rule.RulePriority;
 import net.sourceforge.pmd.reporting.Report;
 import rife.bld.BaseProject;
 import rife.bld.extension.pmd.PmdAnalysisResults;
+import rife.bld.extension.tools.ObjectTools;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 
@@ -46,6 +47,7 @@ import java.util.logging.Logger;
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public class PmdOperation extends AbstractOperation<PmdOperation> {
+
     /**
      * The default logger.
      */
@@ -108,7 +110,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation addExcludes(Path... excludes) {
-        return addExcludes(List.of(excludes));
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return addExcludes(List.of(excludes));
+        }
+        return this;
     }
 
     /**
@@ -120,7 +125,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation addExcludes(Collection<Path> excludes) {
-        excludes_.addAll(excludes);
+        if (ObjectTools.isNotEmpty(excludes)) {
+            excludes_.addAll(excludes);
+        }
         return this;
     }
 
@@ -133,7 +140,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation addExcludesFiles(Collection<File> excludes) {
-        return addExcludes(excludes.stream().map(File::toPath).toList());
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return addExcludes(excludes.stream().map(File::toPath).toList());
+        }
+        return this;
     }
 
     /**
@@ -145,7 +155,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation addExcludesFiles(File... excludes) {
-        return addExcludesFiles(List.of(excludes));
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return addExcludesFiles(List.of(excludes));
+        }
+        return this;
     }
 
     /**
@@ -157,7 +170,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation addExcludesStrings(Collection<String> excludes) {
-        return addExcludes(excludes.stream().map(Paths::get).toList());
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return addExcludes(excludes.stream().map(Paths::get).toList());
+        }
+        return this;
     }
 
     /**
@@ -169,7 +185,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation addExcludesStrings(String... excludes) {
-        return addExcludesStrings(List.of(excludes));
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return addExcludesStrings(List.of(excludes));
+        }
+        return this;
     }
 
     /**
@@ -180,7 +199,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Path...)
      */
     public PmdOperation addInputPaths(Path... inputPath) {
-        return addInputPaths(List.of(inputPath));
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return addInputPaths(List.of(inputPath));
+        }
+        return this;
     }
 
     /**
@@ -191,7 +213,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(File...)
      */
     public PmdOperation addInputPaths(File... inputPath) {
-        return addInputPathsFiles(List.of(inputPath));
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return addInputPathsFiles(List.of(inputPath));
+        }
+        return this;
     }
 
     /**
@@ -202,7 +227,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(String...)
      */
     public PmdOperation addInputPaths(String... inputPath) {
-        return addInputPathsStrings(List.of(inputPath));
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return addInputPathsStrings(List.of(inputPath));
+        }
+        return this;
     }
 
     /**
@@ -213,7 +241,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Collection)
      */
     public PmdOperation addInputPaths(Collection<Path> inputPath) {
-        inputPaths_.addAll(inputPath);
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            inputPaths_.addAll(inputPath);
+        }
         return this;
     }
 
@@ -225,7 +255,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPathsFiles(Collection)
      */
     public PmdOperation addInputPathsFiles(Collection<File> inputPath) {
-        return addInputPaths(inputPath.stream().map(File::toPath).toList());
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return addInputPaths(inputPath.stream().map(File::toPath).toList());
+        }
+        return this;
     }
 
     /**
@@ -236,7 +269,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPathsStrings(Collection)
      */
     public PmdOperation addInputPathsStrings(Collection<String> inputPath) {
-        return addInputPaths(inputPath.stream().map(Paths::get).toList());
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return addInputPaths(inputPath.stream().map(Paths::get).toList());
+        }
+        return this;
     }
 
     /**
@@ -260,7 +296,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ruleSets(String...)
      */
     public PmdOperation addRuleSet(String... ruleSet) {
-        return addRuleSet(List.of(ruleSet));
+        if (ObjectTools.isNotEmpty(ruleSet)) {
+            return addRuleSet(List.of(ruleSet));
+        }
+        return this;
     }
 
     /**
@@ -284,7 +323,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ruleSets(Collection)
      */
     public PmdOperation addRuleSet(Collection<String> ruleSet) {
-        ruleSets_.addAll(ruleSet);
+        if (ObjectTools.isNotEmpty(ruleSet)) {
+            ruleSets_.addAll(ruleSet);
+        }
         return this;
     }
 
@@ -330,7 +371,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation defaultLanguageVersions(LanguageVersion... languageVersion) {
-        return languageVersions(List.of(languageVersion));
+        if (ObjectTools.isNotEmpty(languageVersion)) {
+            languageVersions(List.of(languageVersion));
+        }
+        return this;
     }
 
     /**
@@ -340,7 +384,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation defaultLanguageVersions(Collection<LanguageVersion> languageVersion) {
-        languageVersions_.addAll(languageVersion);
+        if (ObjectTools.isNotEmpty(languageVersion)) {
+            languageVersions_.addAll(languageVersion);
+        }
         return this;
     }
 
@@ -372,7 +418,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addExcludes(Path...)
      */
     public PmdOperation excludes(Path... excludes) {
-        excludes(List.of(excludes));
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return excludes(List.of(excludes));
+        }
         return this;
     }
 
@@ -385,7 +433,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation excludes(Collection<Path> excludes) {
         excludes_.clear();
-        excludes_.addAll(excludes);
+        if (ObjectTools.isNotEmpty(excludes)) {
+            excludes_.addAll(excludes);
+        }
         return this;
     }
 
@@ -408,7 +458,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation excludesFiles(Collection<File> excludes) {
-        excludes(excludes.stream().map(File::toPath).toList());
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return excludes(excludes.stream().map(File::toPath).toList());
+        }
         return this;
     }
 
@@ -421,7 +473,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation excludesFiles(File... excludes) {
-        return excludesFiles(List.of(excludes));
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return excludesFiles(List.of(excludes));
+        }
+        return this;
     }
 
     /**
@@ -433,7 +488,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation excludesStrings(Collection<String> excludes) {
-        excludes(excludes.stream().map(Paths::get).toList());
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return excludes(excludes.stream().map(Paths::get).toList());
+        }
         return this;
     }
 
@@ -446,7 +503,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @since 1.2.0
      */
     public PmdOperation excludesStrings(String... excludes) {
-        return excludesStrings(List.of(excludes));
+        if (ObjectTools.isNotEmpty(excludes)) {
+            return excludesStrings(List.of(excludes));
+        }
+        return this;
     }
 
     /**
@@ -579,7 +639,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         var config = new PMDConfiguration();
 
         // addRelativizeRoots
-        config.addRelativizeRoots(relativizeRoots_.stream().toList());
+        config.addRelativizeRoots(relativizeRoots_);
 
         // collectFilesRecursively
         if (!collectFilesRecursively_) {
@@ -592,7 +652,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         }
 
         // setAnalysisCacheLocation
-        if (cache_ == null && project_ != null && incrementalAnalysis_) {
+        if (ObjectTools.isNotNull(cache_, project_) && incrementalAnalysis_) {
             config.setAnalysisCacheLocation(
                     Paths.get(project_.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-cache").toFile().getAbsolutePath());
         } else if (cache_ != null) {
@@ -600,13 +660,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         }
 
         // setDefaultLanguageVersions
-        if (!languageVersions_.isEmpty()) {
-            config.setDefaultLanguageVersions(languageVersions_.stream().toList());
+        if (ObjectTools.isNotEmpty(languageVersions_)) {
+            config.setDefaultLanguageVersions(languageVersions_);
         }
 
         // setExcludes
-        if (!excludes_.isEmpty()) {
-            config.setExcludes(excludes_.stream().toList());
+        if (ObjectTools.isNotEmpty(excludes_)) {
+            config.setExcludes(excludes_);
         }
 
         // setFailOnError
@@ -628,10 +688,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         config.setIgnoreIncrementalAnalysis(!incrementalAnalysis_);
 
         // setInputPathList
-        if (inputPaths_.isEmpty()) {
+        if (ObjectTools.isEmpty(inputPaths_)) {
             throw new IllegalArgumentException(commandName + ": InputPaths required.");
         } else {
-            config.setInputPathList(inputPaths_.stream().toList());
+            config.setInputPathList(inputPaths_);
         }
 
         // setInputUri
@@ -643,13 +703,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         config.setMinimumPriority(rulePriority_);
 
         // setReportFile
-        if (project_ != null) {
-            config.setReportFile(Objects.requireNonNullElseGet(reportFile_,
-                    () -> Paths.get(project_.buildDirectory().getPath(),
-                            PMD_DIR, PMD_DIR + "-report." + reportFormat_)));
-        } else {
-            config.setReportFile(reportFile_);
-        }
+        config.setReportFile(Objects.requireNonNullElseGet(reportFile_,
+                () -> Paths.get(project_.buildDirectory().getPath(),
+                        PMD_DIR, PMD_DIR + "-report." + reportFormat_))
+        );
 
         // setReportFormat
         config.setReportFormat(reportFormat_);
@@ -658,7 +715,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         config.setReportProperties(reportProperties_);
 
         // setRuleSets
-        config.setRuleSets(ruleSets_.stream().toList());
+        config.setRuleSets(ruleSets_);
 
         // setShowSuppressedViolations
         config.setShowSuppressedViolations(showSuppressed_);
@@ -681,7 +738,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPaths(Path...)
      */
     public PmdOperation inputPaths(Path... inputPath) {
-        return inputPaths(List.of(inputPath));
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return inputPaths(List.of(inputPath));
+        }
+        return this;
     }
 
     /**
@@ -694,7 +754,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPaths(File...)
      */
     public PmdOperation inputPaths(File... inputPath) {
-        return inputPathsFiles(List.of(inputPath));
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return inputPathsFiles(List.of(inputPath));
+        }
+        return this;
     }
 
     /**
@@ -707,7 +770,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPaths(String...)
      */
     public PmdOperation inputPaths(String... inputPath) {
-        return inputPathsStrings(List.of(inputPath));
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return inputPathsStrings(List.of(inputPath));
+        }
+        return this;
     }
 
     /**
@@ -721,7 +787,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation inputPaths(Collection<Path> inputPath) {
         inputPaths_.clear();
-        inputPaths_.addAll(inputPath);
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            inputPaths_.addAll(inputPath);
+        }
         return this;
     }
 
@@ -745,7 +813,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPathsFiles(Collection)
      */
     public PmdOperation inputPathsFiles(Collection<File> inputPath) {
-        return inputPaths(inputPath.stream().map(File::toPath).toList());
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return inputPaths(inputPath.stream().map(File::toPath).toList());
+        }
+        return this;
     }
 
     /**
@@ -758,7 +829,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addInputPathsStrings(Collection)
      */
     public PmdOperation inputPathsStrings(Collection<String> inputPath) {
-        return inputPaths(inputPath.stream().map(Paths::get).toList());
+        if (ObjectTools.isNotEmpty(inputPath)) {
+            return inputPaths(inputPath.stream().map(Paths::get).toList());
+        }
+        return this;
     }
 
     /**
@@ -768,7 +842,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation languageVersions(LanguageVersion... languageVersion) {
-        return languageVersions(List.of(languageVersion));
+        if (ObjectTools.isNotEmpty(languageVersion)) {
+            return languageVersions(List.of(languageVersion));
+        }
+        return this;
     }
 
     /**
@@ -779,7 +856,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation languageVersions(Collection<LanguageVersion> languageVersions) {
         languageVersions_.clear();
-        languageVersions_.addAll(languageVersions);
+        if (ObjectTools.isNotEmpty(languageVersions)) {
+            languageVersions_.addAll(languageVersions);
+        }
         return this;
     }
 
@@ -817,8 +896,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             var report = pmd.performAnalysisAndCollectReport();
 
             if (LOGGER.isLoggable(Level.INFO) && !silent()) {
-                LOGGER.log(Level.INFO, "[{0}] inputPaths{1}", new Object[]{commandName, inputPaths_});
-                LOGGER.log(Level.INFO, "[{0}] ruleSets{1}", new Object[]{commandName, ruleSets_});
+                LOGGER.info(String.format("[%s] inputPaths%s", commandName, inputPaths_));
+                LOGGER.info(String.format("[%s] ruleSets%s", commandName, ruleSets_));
             }
 
             var numViolations = report.getViolations().size();
@@ -828,13 +907,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                 throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
             }
 
-            var rulesChecked = 0;
-            var rules = pmd.getRulesets();
-            if (!rules.isEmpty()) {
-                for (var rule : rules) {
-                    rulesChecked += rule.getRules().size();
-                }
-            }
+            int rulesChecked = pmd.getRulesets().stream()
+                    .mapToInt(rule -> rule.getRules().size())
+                    .sum();
 
             var result = new PmdAnalysisResults(
                     numViolations,
@@ -885,7 +960,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      */
     public PmdOperation prependAuxClasspath(String... classpath) {
-        prependClasspath_ = String.join(File.pathSeparator, classpath);
+        if (ObjectTools.isNotEmpty(classpath)) {
+            prependClasspath_ = String.join(File.pathSeparator, classpath);
+        }
         return this;
     }
 
@@ -906,7 +983,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(Collection)
      */
     public PmdOperation relativizeRoots(Path... relativeRoot) {
-        return relativizeRoots(List.of(relativeRoot));
+        if (ObjectTools.isNotEmpty(relativeRoot)) {
+            return relativizeRoots(List.of(relativeRoot));
+        }
+        return this;
     }
 
     /**
@@ -917,7 +997,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRootsFiles(Collection)
      */
     public PmdOperation relativizeRoots(File... relativeRoot) {
-        return relativizeRootsFiles(List.of(relativeRoot));
+        if (ObjectTools.isNotEmpty(relativeRoot)) {
+            return relativizeRootsFiles(List.of(relativeRoot));
+        }
+        return this;
     }
 
     /**
@@ -928,7 +1011,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRootsStrings(Collection)
      */
     public PmdOperation relativizeRoots(String... relativeRoot) {
-        return relativizeRootsStrings(List.of(relativeRoot));
+        if (ObjectTools.isNotEmpty(relativeRoot)) {
+            return relativizeRootsStrings(List.of(relativeRoot));
+        }
+        return this;
     }
 
     /**
@@ -939,7 +1025,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(Path...)
      */
     public PmdOperation relativizeRoots(Collection<Path> relativeRoot) {
-        relativizeRoots_.addAll(relativeRoot);
+        if (ObjectTools.isNotEmpty(relativeRoot)) {
+            relativizeRoots_.addAll(relativeRoot);
+        }
         return this;
     }
 
@@ -961,7 +1049,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(File...)
      */
     public PmdOperation relativizeRootsFiles(Collection<File> relativeRoot) {
-        return relativizeRoots(relativeRoot.stream().map(File::toPath).toList());
+        if (ObjectTools.isNotEmpty(relativeRoot)) {
+            return relativizeRoots(relativeRoot.stream().map(File::toPath).toList());
+        }
+        return this;
     }
 
     /**
@@ -972,7 +1063,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(String...)
      */
     public PmdOperation relativizeRootsStrings(Collection<String> relativeRoot) {
-        return relativizeRoots(relativeRoot.stream().map(Paths::get).toList());
+        if (ObjectTools.isNotEmpty(relativeRoot)) {
+            return relativizeRoots(relativeRoot.stream().map(Path::of).toList());
+        }
+        return this;
     }
 
     /**
@@ -1035,7 +1129,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation reportProperties(Properties reportProperties) {
         reportProperties_.clear();
-        reportProperties_.putAll(reportProperties);
+        if (ObjectTools.isNotEmpty(reportProperties)) {
+            reportProperties_.putAll(reportProperties);
+        }
         return this;
     }
 
@@ -1060,7 +1156,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #addRuleSet(String...)
      */
     public PmdOperation ruleSets(String... ruleSet) {
-        return ruleSets(List.of(ruleSet));
+        if (ObjectTools.isNotEmpty(ruleSet)) {
+            return ruleSets(List.of(ruleSet));
+        }
+        return this;
     }
 
     /**
@@ -1085,7 +1184,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     public PmdOperation ruleSets(Collection<String> ruleSet) {
         ruleSets_.clear();
-        ruleSets_.addAll(ruleSet);
+        if (ObjectTools.isNotEmpty(ruleSet)) {
+            ruleSets_.addAll(ruleSet);
+        }
         return this;
     }
 
@@ -1145,16 +1246,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     private void printViolations(String commandName, PMDConfiguration config, Report report)
             throws ExitStatusException {
+        final String msgFormat = includeLineNumber_ ?
+                "[%s] %s:%d\n\t%s (%s)\n\t\t--> %s" :
+                "[%s] %s (line: %d)\n\t%s (%s)\n\t\t--> %s";
         for (var v : report.getViolations()) {
             if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-                final String msg;
-                if (includeLineNumber_) {
-                    msg = "[%s] %s:%d\n\t%s (%s)\n\t\t--> %s";
-                } else {
-                    msg = "[%s] %s (line: %d)\n\t%s (%s)\n\t\t--> %s";
-                }
                 LOGGER.log(Level.WARNING,
-                        String.format(msg,
+                        String.format(msgFormat,
                                 commandName,
                                 v.getFileId().getUriString(),
                                 v.getBeginLine(),
