@@ -24,6 +24,7 @@ import net.sourceforge.pmd.lang.rule.RulePriority;
 import net.sourceforge.pmd.reporting.Report;
 import rife.bld.BaseProject;
 import rife.bld.extension.pmd.PmdAnalysisResults;
+import rife.bld.extension.tools.IOTools;
 import rife.bld.extension.tools.ObjectTools;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
@@ -652,11 +653,18 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         }
 
         // setAnalysisCacheLocation
-        if (ObjectTools.isNotNull(cache_, project_) && incrementalAnalysis_) {
-            config.setAnalysisCacheLocation(
-                    Paths.get(project_.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-cache").toFile().getAbsolutePath());
-        } else if (cache_ != null) {
-            config.setAnalysisCacheLocation(cache_.toFile().getAbsolutePath());
+        if (incrementalAnalysis_) {
+            if (cache_ != null) {
+                config.setAnalysisCacheLocation(cache_.toFile().getAbsolutePath());
+            } else if (project_ != null) {
+                config.setAnalysisCacheLocation(
+                        IOTools.resolveFile(
+                                project_.buildDirectory(),
+                                PMD_DIR,
+                                PMD_DIR + "-cache"
+                        ).getAbsolutePath()
+                );
+            }
         }
 
         // setDefaultLanguageVersions
