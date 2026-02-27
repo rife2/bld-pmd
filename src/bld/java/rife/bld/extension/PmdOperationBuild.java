@@ -44,7 +44,7 @@ public class PmdOperationBuild extends Project {
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_SNAPSHOTS, RIFE2_RELEASES);
 
         var pmd = version(7, 21, 0);
-        var junit = version(6, 0, 2);
+        var junit = version(6, 0, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
                         version(0, 9, 0, "SNAPSHOT")))
