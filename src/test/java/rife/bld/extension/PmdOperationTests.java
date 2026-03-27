@@ -16,7 +16,6 @@
 
 package rife.bld.extension;
 
-import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.lang.LanguageRegistry;
 import net.sourceforge.pmd.lang.rule.RulePriority;
 import org.junit.jupiter.api.DisplayName;
@@ -46,24 +45,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * PmdOperationTests class
+ * PmdOperation Tests
  *
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @ExtendWith(LoggingExtension.class)
 class PmdOperationTests {
+
     private static final String ANALYSIS_FAILURE = "analysis should fail";
     private static final String ANALYSIS_SUCCESS = "analysis should succeed";
     private static final String BAR = "bar";
     private static final String CATEGORY_FOO = "category/foo.xml";
     private static final Path CODE_STYLE_SAMPLE = Path.of("src/test/resources/java/CodeStyle.java");
-    private static final String CODE_STYLE_XML = "category/java/codestyle.xml";
     private static final String COMMAND_NAME = "pmd";
-    private static final String DESIGN_XML = "category/java/design.xml";
-    private static final String DOCUMENTATION_XML = "category/java/documentation.xml";
     private static final Path ERROR_PRONE_SAMPLE = Path.of("src/test/resources/java/ErrorProne.java");
-    private static final String ERROR_PRONE_XML = "category/java/errorprone.xml";
     private static final File FILE_BAR = new File(BAR);
     private static final String FOO = "foo";
     private static final File FILE_FOO = new File(FOO);
@@ -138,7 +135,7 @@ class PmdOperationTests {
         void encoding() {
             var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).encoding("UTF-16");
 
-            PMDConfiguration config = pmd.initConfiguration(COMMAND_NAME);
+            var config = pmd.initConfiguration(COMMAND_NAME);
             assertThat(config.getSourceEncoding()).as("encoding should be UTF-16")
                     .isEqualTo(StandardCharsets.UTF_16);
 
@@ -154,29 +151,6 @@ class PmdOperationTests {
 
             var config = pmd.initConfiguration(COMMAND_NAME);
             assertThat(config.isIgnoreIncrementalAnalysis()).isFalse();
-        }
-
-        @Test
-        void languageVersions() throws ExitStatusException {
-            var language = LanguageRegistry.PMD.getLanguageById("java");
-            assertThat(language).isNotNull();
-
-            var pmd = newPmdOperation()
-                    .forceLanguageVersion(language.getLatestVersion())
-                    .defaultLanguageVersions(language.getVersions())
-                    .languageVersions(language.getDefaultVersion())
-                    .ruleSets(PmdOperation.RULE_SET_DEFAULT);
-
-            assertThat(pmd.languageVersions()).as("should contain default language version")
-                    .contains(language.getDefaultVersion());
-            assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).processingErrors())
-                    .as("should have processing errors").isGreaterThan(0);
-
-            assertThat(pmd.defaultLanguageVersions(language.getVersion("17"), language.getVersion("21"))
-                    .languageVersions(language.getVersions())
-                    .excludesStrings("src/test/resources/txt", "src/test/resources/xml")
-                    .performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).configurationErrors())
-                    .as("should have no processing errors").isEqualTo(0);
         }
 
         @Test
@@ -251,38 +225,6 @@ class PmdOperationTests {
         @Nested
         @DisplayName("Exclusion Tests")
         class ExclusionTests {
-            @Test
-            void addExcludes() {
-                var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).addExcludes(PATH_FOO);
-                var config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(config.getExcludes()).containsExactly(PATH_FOO);
-
-                pmd = pmd.addExcludes(PATH_BAR);
-                config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(config.getExcludes()).containsExactly(PATH_FOO, PATH_BAR);
-            }
-
-            @Test
-            void addExcludesFiles() {
-                var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).addExcludesFiles(FILE_FOO);
-                var config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(config.getExcludes()).containsExactly(FILE_FOO.toPath());
-
-                pmd = pmd.addExcludesFiles(FILE_BAR);
-                config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(config.getExcludes()).containsExactly(FILE_FOO.toPath(), FILE_BAR.toPath());
-            }
-
-            @Test
-            void addExcludesStrings() {
-                var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).addExcludesStrings(FOO);
-                var config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(config.getExcludes()).containsExactly(PATH_FOO);
-
-                pmd = pmd.addExcludesStrings(BAR);
-                config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(config.getExcludes()).containsExactly(PATH_FOO, PATH_BAR);
-            }
 
             @Test
             void excludes() {
@@ -321,6 +263,16 @@ class PmdOperationTests {
             }
 
             @Test
+            void excludesNoClear() {
+                var baz = Path.of("baz");
+                var pmd = newPmdOperation()
+                        .excludes(PATH_FOO)
+                        .excludes(false, PATH_BAR, baz);
+
+                assertThat(pmd.excludes()).containsExactly(PATH_FOO, PATH_BAR, baz);
+            }
+
+            @Test
             void excludesStrings() {
                 var foz = "foz";
                 var baz = "baz";
@@ -338,11 +290,21 @@ class PmdOperationTests {
                             .containsExactly(exclude.stream().map(Paths::get).toArray(Path[]::new));
                 }
             }
+
+            @Test
+            void excludesStringsNoClear() {
+                var pmd = new PmdOperation()
+                        .excludesStrings(FOO)
+                        .excludesStrings(false, BAR, "baz");
+
+                assertThat(pmd.excludes()).containsExactly(PATH_FOO, PATH_BAR, Path.of("baz"));
+            }
         }
 
         @Nested
         @DisplayName("Failure Tests")
         class FailureTests {
+
             @Test
             void failOnError() {
                 var pmd = newPmdOperation().ruleSets("src/test/resources/xml/old.xml")
@@ -427,20 +389,28 @@ class PmdOperationTests {
                 pmd.inputPaths(FILE_FOO, FILE_BAR);
                 pmd.inputPaths(false, ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile());
 
-                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
-                        .as(ANALYSIS_FAILURE).isGreaterThan(0);
+                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
+                        ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
             }
 
             @Test
-            void stringArray() throws ExitStatusException {
-                var pmd = newPmdOperation()
-                        .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
-                        .inputPaths(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString());
+            void inputPathsAsFileList() {
+                var pmd = new PmdOperation().fromProject(project);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd.inputPathsFiles(List.of(project.srcMainDirectory(), project.srcTestDirectory()));
 
-                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
-                        .as(ANALYSIS_FAILURE).isGreaterThan(0);
+                assertThat(pmd.inputPaths()).as("List(File...)")
+                        .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+            }
+
+            @Test
+            void inputPathsAsFileListNoClear() {
+                var pmd = new PmdOperation().fromProject(project);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd.inputPathsFiles(false, List.of(project.srcMainDirectory(), project.srcTestDirectory()));
+
+                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
+                        project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
             }
 
             @Test
@@ -462,62 +432,54 @@ class PmdOperationTests {
                 pmd.inputPaths(FILE_FOO, FILE_BAR);
                 pmd.inputPathsFiles(false, List.of(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile()));
 
-            @Nested
-            @DisplayName("Add Input Paths Tests")
-            class AddInputPathsTests {
-                final BaseProject project = new BaseProject();
+                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
+                        ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+            }
 
-                @Test
-                void addInputPathsAsFileArray() {
-                    var pmd = new PmdOperation().fromProject(project);
-                    pmd.inputPaths().clear();
-                    pmd = pmd.addInputPaths(project.srcMainDirectory(), project.srcTestDirectory());
+            @Test
+            void inputPathsAsPathArray() {
+                var pmd = new PmdOperation().fromProject(project);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd = pmd.inputPaths(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
 
-                    assertThat(pmd.inputPaths()).as("File...").containsExactly(project.srcMainDirectory().toPath(),
-                            project.srcTestDirectory().toPath());
-                }
+                assertThat(pmd.inputPaths()).as("Path...")
+                        .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+            }
 
-                @Test
-                void addInputPathsAsFileList() {
-                    var pmd = new PmdOperation().fromProject(project);
-                    pmd.inputPaths().clear();
-                    pmd = pmd.addInputPathsFiles(List.of(project.srcMainDirectory(), project.srcTestDirectory()));
+            @Test
+            void inputPathsAsPathArrayNoClear() {
+                var pmd = new PmdOperation().fromProject(project);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd = pmd.inputPaths(false, project.srcMainDirectory().toPath(),
+                        project.srcTestDirectory().toPath());
 
-                    assertThat(pmd.inputPaths()).as("List(File...)")
-                            .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-                }
+                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
+                        project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+            }
 
-                @Test
-                void addInputPathsAsPathArray() {
-                    var pmd = new PmdOperation().fromProject(project);
-                    pmd.inputPaths().clear();
-                    pmd = pmd.addInputPaths(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+            @Test
+            void inputPathsAsPathList() {
+                var pmd = new PmdOperation().fromProject(project);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                assertThat(pmd.inputPaths()).containsExactly(FILE_FOO.toPath(), FILE_BAR.toPath());
 
-                    assertThat(pmd.inputPaths()).as("Path...")
-                            .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-                }
+                pmd.inputPaths(List.of(project.srcMainDirectory().toPath(),
+                        project.srcTestDirectory().toPath()));
+                assertThat(pmd.inputPaths()).as("List(Path)")
+                        .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+            }
 
-                @Test
-                void addInputPathsAsPathList() {
-                    var pmd = new PmdOperation().fromProject(project);
-                    pmd.inputPaths().clear();
-                    pmd = pmd.addInputPaths(List.of(project.srcMainDirectory().toPath(),
-                            project.srcTestDirectory().toPath()));
 
-                    assertThat(pmd.inputPaths()).as("List(Path)")
-                            .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-                }
+            @Test
+            void inputPathsAsPathListNoClear() {
+                var pmd = new PmdOperation().fromProject(project);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd.inputPaths(false, List.of(project.srcMainDirectory().toPath(),
+                        project.srcTestDirectory().toPath()));
 
-                @Test
-                void addInputPathsAsStringArray() {
-                    var pmd = new PmdOperation().fromProject(project);
-                    pmd.inputPaths().clear();
-                    pmd = pmd.addInputPaths(project.srcMainDirectory().getAbsolutePath(),
-                            project.srcTestDirectory().getAbsolutePath());
-
-                    assertThat(pmd.inputPaths()).as("String...")
-                            .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-                }
+                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
+                        project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
+            }
 
             @Test
             void inputPathsAsStringArray() throws ExitStatusException {
@@ -593,12 +555,21 @@ class PmdOperationTests {
                         Path.of("src/test/resources/xml/basic.xml"));
             }
 
-                @Test
-                void addInputPathsWithDefaults() {
-                    var pmd = new PmdOperation().fromProject(project);
-                    assertThat(pmd.inputPaths()).as("default input paths")
-                            .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-                }
+            @Test
+            void inputPathsMainOperation() throws ExitStatusException {
+                var pmd = newPmdOperation()
+                        .inputPaths(new File("src/main"))
+                        .performPmdAnalysis(TEST, newPmdOperation().initConfiguration(COMMAND_NAME))
+                        .violations();
+
+                assertThat(pmd).as(ANALYSIS_SUCCESS).isEqualTo(0);
+            }
+
+            @Test
+            void inputPathsWithDefaults() {
+                var pmd = new PmdOperation().fromProject(project);
+                assertThat(pmd.inputPaths()).as("default input paths")
+                        .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
             }
         }
 
@@ -827,10 +798,10 @@ class PmdOperationTests {
     @Nested
     @DisplayName("Execution Tests")
     class ExecutionTests {
+
         @Test
         void execute() throws ExitStatusException {
             var pmd = new PmdOperation().fromProject(new BaseProject());
-
             pmd.inputPaths("src/main/java", "src/test/java").ruleSets("config/pmd.xml");
 
             assertThat(pmd.ruleSets()).containsExactly("config/pmd.xml");

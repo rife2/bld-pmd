@@ -5,6 +5,9 @@
       <entry_point TYPE="field" FQNAME="rife.bld.extension.PmdOperation languageVersions" />
       <entry_point TYPE="field" FQNAME="rife.bld.extension.PmdOperation reportFile" />
       <entry_point TYPE="field" FQNAME="rife.bld.extension.PmdOperation RULE_SET_DEFAULT" />
+      <entry_point TYPE="field" FQNAME="rife.bld.extension.pmd.JavaRules MULTITHREADING" />
+      <entry_point TYPE="field" FQNAME="rife.bld.extension.pmd.JavaRules PERFORMANCE" />
+      <entry_point TYPE="field" FQNAME="rife.bld.extension.pmd.JavaRules SECURITY" />
     </entry_points>
     <pattern value="rife.bld.extension.PmdOperation" method="addInputPath" />
     <pattern value="rife.bld.extension.PmdOperation" method="addRelativizeRoot" />
@@ -15,6 +18,7 @@
     <pattern value="rife.bld.extension.PmdOperationBuild" />
     <pattern value="rife.bld.extension.PmdOperationBuild" method="reporter" />
     <pattern value="rife.bld.extension.PmdOperationBuild" method="spotbugs" />
+    <pattern value="rife.bld.extension.pmd.JavaRules" />
   </component>
   <component name="PDMPlugin">
     <option name="customRuleSets">

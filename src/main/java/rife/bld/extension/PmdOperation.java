@@ -21,7 +21,7 @@ import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.PmdAnalysis;
 import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.rule.RulePriority;
-import net.sourceforge.pmd.reporting.Report;
+import net.sourceforge.pmd.reporting.RuleViolation;
 import rife.bld.BaseProject;
 import rife.bld.extension.pmd.JavaRules;
 import rife.bld.extension.pmd.PmdAnalysisResults;
@@ -55,20 +55,19 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * The default logger.
      */
     public static final Logger LOGGER = Logger.getLogger(PmdOperation.class.getName());
-    /**
-     * The default rule set.
-     * <p>
-     * Set to: {@code rulesets/java/quickstart.xml}
-     */
-    public static final String RULE_SET_DEFAULT = "rulesets/java/quickstart.xml";
 
+    private static final String MSG_FORMAT_NO_LINE =
+            "[%s] %s (line: %d)\n\t%s (%s)\n\t\t--> %s";
+    private static final String MSG_FORMAT_WITH_LINE =
+            "[%s] %s:%d\n\t%s (%s)\n\t\t--> %s";
     private static final String PMD_DIR = "pmd";
+    private final List<LanguageVersion> defaultLanguageVersions_ = new ArrayList<>();
     private final List<Path> excludes_ = new ArrayList<>();
     private final List<Path> inputPaths_ = new ArrayList<>();
-    private final List<LanguageVersion> languageVersions_ = new ArrayList<>();
     private final List<Path> relativizeRoots_ = new ArrayList<>();
     private final Properties reportProperties_ = new Properties();
-    private final List<String> ruleSets_ = new ArrayList<>();
+    private final Set<String> ruleSets_ = new LinkedHashSet<>();
+
     private Path cache_;
     private boolean collectFilesRecursively_ = true;
     private Charset encoding_ = StandardCharsets.UTF_8;
@@ -79,7 +78,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     private boolean includeLineNumber_ = true;
     private boolean incrementalAnalysis_ = true;
     private URI inputUri_;
-    private String prependClasspath_;
+    private String prependAuxClasspath_;
     private BaseProject project_;
     private Path reportFile_;
     private String reportFormat_ = "text";
@@ -94,8 +93,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     @Override
     public void execute() throws Exception {
         if (project_ == null) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.log(Level.SEVERE, "A project is required to run this operation.");
+            if (canLog(Level.SEVERE)) {
+                LOGGER.severe("A project is required to run this operation.");
             }
             throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
@@ -105,235 +104,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds paths to exclude from the analysis.
-     *
-     * @param excludes one or more paths to exclude
-     * @return this operation
-     * @see #excludes(Path...)
-     * @since 1.2.0
-     */
-    public PmdOperation addExcludes(Path... excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return addExcludes(List.of(excludes));
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to exclude from the analysis.
-     *
-     * @param excludes paths to exclude
-     * @return this operation
-     * @see #excludes(Collection)
-     * @since 1.2.0
-     */
-    public PmdOperation addExcludes(Collection<Path> excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            excludes_.addAll(excludes);
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to exclude from the analysis.
-     *
-     * @param excludes one or more paths to exclude
-     * @return this operation
-     * @see #excludesFiles(Collection)
-     * @since 1.2.0
-     */
-    public PmdOperation addExcludesFiles(Collection<File> excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return addExcludes(excludes.stream().map(File::toPath).toList());
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to exclude from the analysis.
-     *
-     * @param excludes one or more paths to exclude
-     * @return this operation
-     * @see #excludesFiles(File...)
-     * @since 1.2.0
-     */
-    public PmdOperation addExcludesFiles(File... excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return addExcludesFiles(List.of(excludes));
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to exclude from the analysis.
-     *
-     * @param excludes one or more paths to exclude
-     * @return this operation
-     * @see #excludesStrings(Collection)
-     * @since 1.2.0
-     */
-    public PmdOperation addExcludesStrings(Collection<String> excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return addExcludes(excludes.stream().map(Paths::get).toList());
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to exclude from the analysis.
-     *
-     * @param excludes one or more paths to exclude
-     * @return this operation
-     * @see #excludesStrings(String...)
-     * @since 1.2.0
-     */
-    public PmdOperation addExcludesStrings(String... excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return addExcludesStrings(List.of(excludes));
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to source files or directories containing source files to analyze.\
-     *
-     * @param inputPath one or more paths
-     * @return this operation
-     * @see #inputPaths(Path...)
-     */
-    public PmdOperation addInputPaths(Path... inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return addInputPaths(List.of(inputPath));
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to source files or directories containing source files to analyze.
-     *
-     * @param inputPath one or more paths
-     * @return this operation
-     * @see #inputPaths(File...)
-     */
-    public PmdOperation addInputPaths(File... inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return addInputPathsFiles(List.of(inputPath));
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to source files or directories containing source files to analyze.
-     *
-     * @param inputPath one or more paths
-     * @return this operation
-     * @see #inputPaths(String...)
-     */
-    public PmdOperation addInputPaths(String... inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return addInputPathsStrings(List.of(inputPath));
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to source files or directories containing source files to analyze.
-     *
-     * @param inputPath a collection of input paths
-     * @return this operation
-     * @see #inputPaths(Collection)
-     */
-    public PmdOperation addInputPaths(Collection<Path> inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            inputPaths_.addAll(inputPath);
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to source files or directories containing source files to analyze.
-     *
-     * @param inputPath a collection of input paths
-     * @return this operation
-     * @see #inputPathsFiles(Collection)
-     */
-    public PmdOperation addInputPathsFiles(Collection<File> inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return addInputPaths(inputPath.stream().map(File::toPath).toList());
-        }
-        return this;
-    }
-
-    /**
-     * Adds paths to source files or directories containing source files to analyze.
-     *
-     * @param inputPath a collection of input paths
-     * @return this operation
-     * @see #inputPathsStrings(Collection)
-     */
-    public PmdOperation addInputPathsStrings(Collection<String> inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return addInputPaths(inputPath.stream().map(Paths::get).toList());
-        }
-        return this;
-    }
-
-    /**
-     * Adds new rule set paths.
-     * <p>
-     * The built-in rule set paths are:
-     * <ul>
-     *     <li>{@code rulesets/java/quickstart.xml}</li>
-     *     <li>{@code category/java/bestpractices.xml}</li>
-     *     <li>{@code category/java/codestyle.xml}</li>
-     *     <li>{@code category/java/design.xml}</li>
-     *     <li>{@code category/java/documentation.xml}</li>
-     *     <li>{@code category/java/errorprone.xml}</li>
-     *     <li>{@code category/java/multithreading.xml}</li>
-     *     <li>{@code category/java/performance.xml}</li>
-     *     <li>{@code category/java/security.xml}</li>
-     * </ul>
-     *
-     * @param ruleSet one or more rule set
-     * @return this operation
-     * @see #ruleSets(String...)
-     */
-    public PmdOperation addRuleSet(String... ruleSet) {
-        if (ObjectTools.isNotEmpty(ruleSet)) {
-            return addRuleSet(List.of(ruleSet));
-        }
-        return this;
-    }
-
-    /**
-     * Adds new rule set paths.
-     * <p>
-     * The built-in rule set paths are:
-     * <ul>
-     *     <li>{@code rulesets/java/quickstart.xml}</li>
-     *     <li>{@code category/java/bestpractices.xml}</li>
-     *     <li>{@code category/java/codestyle.xml}</li>
-     *     <li>{@code category/java/design.xml}</li>
-     *     <li>{@code category/java/documentation.xml}</li>
-     *     <li>{@code category/java/errorprone.xml}</li>
-     *     <li>{@code category/java/multithreading.xml}</li>
-     *     <li>{@code category/java/performance.xml}</li>
-     *     <li>{@code category/java/security.xml}</li>
-     * </ul>
-     *
-     * @param ruleSet a collection of rule set paths
-     * @return this operation
-     * @see #ruleSets(Collection)
-     */
-    public PmdOperation addRuleSet(Collection<String> ruleSet) {
-        if (ObjectTools.isNotEmpty(ruleSet)) {
-            ruleSets_.addAll(ruleSet);
-        }
-        return this;
-    }
-
-    /**
      * Sets the location of the cache file for incremental analysis.
+     *
+     * @param cache the cache file path
+     * @return this operation
+     * @see #cache(File)
+     * @see #cache(String)
+     * @since 1.0
      */
     public PmdOperation cache(Path cache) {
         cache_ = cache;
@@ -342,6 +119,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Sets the location of the cache file for incremental analysis.
+     *
+     * @param cache the cache file
+     * @return this operation
+     * @see #cache(Path)
+     * @see #cache(String)
+     * @since 1.0
      */
     public PmdOperation cache(File cache) {
         return cache(cache.toPath());
@@ -349,14 +132,20 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Sets the location of the cache file for incremental analysis.
+     *
+     * @param cache the cache file path
+     * @return this operation
+     * @see #cache(Path)
+     * @see #cache(File)
+     * @since 1.0
      */
     public PmdOperation cache(String cache) {
         return cache(Path.of(cache));
     }
 
     /**
-     * When specified, any directory mentioned with {@link #inputPaths()} will only be searched for files that are
-     * direct children. By default, subdirectories are recursively included.
+     * When specified, any directory mentioned with {@link #inputPaths()} will only be searched
+     * for files that are direct children. By default, subdirectories are recursively included.
      *
      * @param collectFilesRecursively whether to collect files recursively or not
      * @return this operation
@@ -370,12 +159,15 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the default language version to be used for all input files.
      *
-     * @param languageVersion one or more language version
+     * @param languageVersion one or more language versions
      * @return this operation
+     * @see #defaultLanguageVersions(Collection...)
+     * @see #defaultLanguageVersions()
+     * @since 1.0
      */
     public PmdOperation defaultLanguageVersions(LanguageVersion... languageVersion) {
         if (ObjectTools.isNotEmpty(languageVersion)) {
-            languageVersions(List.of(languageVersion));
+            defaultLanguageVersions(List.of(languageVersion));
         }
         return this;
     }
@@ -383,30 +175,56 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the default language version to be used for all input files.
      *
-     * @param languageVersion a collection language version
+     * @param languageVersion a collection of language versions
      * @return this operation
+     * @see #defaultLanguageVersions(LanguageVersion...)
+     * @see #defaultLanguageVersions()
+     * @since 1.0
      */
-    public PmdOperation defaultLanguageVersions(Collection<LanguageVersion> languageVersion) {
-        if (ObjectTools.isNotEmpty(languageVersion)) {
-            languageVersions_.addAll(languageVersion);
-        }
+    @SafeVarargs
+    public final PmdOperation defaultLanguageVersions(Collection<LanguageVersion>... languageVersion) {
+        defaultLanguageVersions_.addAll(CollectionTools.combine(languageVersion));
         return this;
     }
 
     /**
-     * <p>Specifies the character set encoding of the source code files. The default is {@code UTF-8}.</p>
+     * Returns the default language versions.
+     *
+     * @return the language versions
+     * @see #defaultLanguageVersions(LanguageVersion...)
+     * @see #defaultLanguageVersions(Collection...)
+     * @since 1.0
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<LanguageVersion> defaultLanguageVersions() {
+        return defaultLanguageVersions_;
+    }
+
+    /**
+     * Specifies the character set encoding of the source code files. The default is
+     * {@link StandardCharsets#UTF_8 UTF-8}.
      *
      * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
+     *
+     * @param encoding the encoding name
+     * @return this operation
+     * @see #encoding(Charset)
+     * @since 1.0
      */
     public PmdOperation encoding(String encoding) {
         return encoding(Charset.forName(encoding));
     }
 
     /**
-     * <p>Specifies the character set encoding of the source code files. The default is
-     * {@link StandardCharsets#UTF_8 UTF-8}.</p>
+     * Specifies the character set encoding of the source code files. The default is
+     * {@link StandardCharsets#UTF_8 UTF-8}.
      *
      * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
+     *
+     * @param encoding the charset
+     * @return this operation
+     * @see #encoding(String)
+     * @since 1.0
      */
     public PmdOperation encoding(Charset encoding) {
         encoding_ = encoding;
@@ -414,38 +232,41 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets paths to exclude from the analysis, replacing any previous entries.
      *
      * @param excludes one or more paths to exclude
      * @return this operation
-     * @see #addExcludes(Path...)
+     * @see #excludes(boolean, Path...)
+     * @see #excludes(Collection...)
+     * @see #excludes()
+     * @since 1.0
      */
     public PmdOperation excludes(Path... excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return excludes(List.of(excludes));
-        }
-        return this;
+        return excludes(true, excludes);
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets paths to exclude from the analysis, replacing any previous entries.
      *
      * @param excludes paths to exclude
      * @return this operation
-     * @see #addExcludes(Collection)
+     * @see #excludes(boolean, Collection...)
+     * @see #excludes(Path...)
+     * @see #excludes()
+     * @since 1.0
      */
-    public PmdOperation excludes(Collection<Path> excludes) {
-        excludes_.clear();
-        if (ObjectTools.isNotEmpty(excludes)) {
-            excludes_.addAll(excludes);
-        }
-        return this;
+    @SafeVarargs
+    public final PmdOperation excludes(Collection<Path>... excludes) {
+        return excludes(true, excludes);
     }
 
     /**
      * Returns the paths to exclude from the analysis.
      *
      * @return the exclude paths
+     * @see #excludes(Path...)
+     * @see #excludes(Collection...)
+     * @since 1.0
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<Path> excludes() {
@@ -455,60 +276,170 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets paths to exclude from the analysis.
      *
+     * @param clear    whether to clear existing entries before adding the new ones
      * @param excludes one or more paths to exclude
      * @return this operation
-     * @see #excludesFiles(Collection)
-     * @since 1.2.0
+     * @see #excludes(Path...)
+     * @see #excludes(Collection...)
+     * @see #excludes()
+     * @since 1.5.0
      */
-    public PmdOperation excludesFiles(Collection<File> excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return excludes(excludes.stream().map(File::toPath).toList());
+    public PmdOperation excludes(boolean clear, Path... excludes) {
+        if (clear) {
+            excludes_.clear();
         }
+        excludes_.addAll(CollectionTools.combine(excludes));
         return this;
     }
 
     /**
      * Sets paths to exclude from the analysis.
      *
+     * @param clear    whether to clear existing entries before adding the new ones
+     * @param excludes paths to exclude
+     * @return this operation
+     * @see #excludes(Path...)
+     * @see #excludes()
+     * @since 1.5.0
+     */
+    @SafeVarargs
+    public final PmdOperation excludes(boolean clear, Collection<Path>... excludes) {
+        if (clear) {
+            excludes_.clear();
+        }
+        excludes_.addAll(CollectionTools.combine(excludes));
+        return this;
+    }
+
+    /**
+     * Sets paths to exclude from the analysis, replacing any previous entries.
+     *
+     * @param excludes a collection of paths to exclude
+     * @return this operation
+     * @see #excludesFiles(boolean, Collection...)
+     * @see #excludesFiles(File...)
+     * @see #excludes(Path...)
+     * @since 1.2.0
+     */
+    @SafeVarargs
+    public final PmdOperation excludesFiles(Collection<File>... excludes) {
+        return excludesFiles(true, excludes);
+    }
+
+    /**
+     * Sets paths to exclude from the analysis, replacing any previous entries.
+     *
      * @param excludes one or more paths to exclude
      * @return this operation
-     * @see #excludesFiles(File...)
+     * @see #excludesFiles(boolean, File...)
+     * @see #excludesFiles(Collection...)
+     * @see #excludes(Path...)
      * @since 1.2.0
      */
     public PmdOperation excludesFiles(File... excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return excludesFiles(List.of(excludes));
+        return excludesFiles(true, excludes);
+    }
+
+    /**
+     * Sets paths to exclude from the analysis.
+     *
+     * @param clear    whether to clear existing entries before adding the new ones
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesFiles(File...)
+     * @see #excludes(Path...)
+     * @since 1.5.0
+     */
+    public PmdOperation excludesFiles(boolean clear, File... excludes) {
+        if (clear) {
+            excludes_.clear();
         }
+        excludes_.addAll(CollectionTools.combineFilesToPaths(excludes));
         return this;
     }
 
     /**
      * Sets paths to exclude from the analysis.
      *
-     * @param excludes one or more paths to exclude
+     * @param clear    whether to clear existing entries before adding the new ones
+     * @param excludes a collection of paths to exclude
      * @return this operation
-     * @see #excludesStrings(Collection)
+     * @see #excludesFiles(File...)
+     * @see #excludes(Path...)
+     * @since 1.5.0
+     */
+    @SafeVarargs
+    public final PmdOperation excludesFiles(boolean clear, Collection<File>... excludes) {
+        if (clear) {
+            excludes_.clear();
+        }
+        excludes_.addAll(CollectionTools.combineFilesToPaths(excludes));
+        return this;
+    }
+
+    /**
+     * Sets paths to exclude from the analysis, replacing any previous entries.
+     *
+     * @param excludes a collection of paths to exclude
+     * @return this operation
+     * @see #excludesStrings(boolean, Collection...)
+     * @see #excludesStrings(String...)
+     * @see #excludes(Path...)
      * @since 1.2.0
      */
-    public PmdOperation excludesStrings(Collection<String> excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return excludes(excludes.stream().map(Paths::get).toList());
-        }
-        return this;
+    @SafeVarargs
+    public final PmdOperation excludesStrings(Collection<String>... excludes) {
+        return excludesStrings(true, excludes);
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets paths to exclude from the analysis, replacing any previous entries.
      *
      * @param excludes one or more paths to exclude
      * @return this operation
-     * @see #excludesStrings(String...)
+     * @see #excludesStrings(boolean, String...)
+     * @see #excludesStrings(Collection...)
+     * @see #excludes(Path...)
      * @since 1.2.0
      */
     public PmdOperation excludesStrings(String... excludes) {
-        if (ObjectTools.isNotEmpty(excludes)) {
-            return excludesStrings(List.of(excludes));
+        return excludesStrings(true, excludes);
+    }
+
+    /**
+     * Sets paths to exclude from the analysis.
+     *
+     * @param clear    whether to clear existing entries before adding the new ones
+     * @param excludes one or more paths to exclude
+     * @return this operation
+     * @see #excludesStrings(Collection...)
+     * @see #excludes(Path...)
+     * @since 1.5.0
+     */
+    public PmdOperation excludesStrings(boolean clear, String... excludes) {
+        if (clear) {
+            excludes_.clear();
         }
+        excludes_.addAll(CollectionTools.combineStringsToPaths(excludes));
+        return this;
+    }
+
+    /**
+     * Sets paths to exclude from the analysis.
+     *
+     * @param clear    whether to clear existing entries before adding the new ones
+     * @param excludes a collection of paths to exclude
+     * @return this operation
+     * @see #excludesStrings(String...)
+     * @see #excludes(Path...)
+     * @since 1.5.0
+     */
+    @SafeVarargs
+    public final PmdOperation excludesStrings(boolean clear, Collection<String>... excludes) {
+        if (clear) {
+            excludes_.clear();
+        }
+        excludes_.addAll(CollectionTools.combineStringsToPaths(excludes));
         return this;
     }
 
@@ -522,6 +453,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param failOnError whether to exit and fail the build if recoverable errors occurred
      * @return this operation
      * @see #failOnViolation(boolean)
+     * @since 1.0
      */
     public PmdOperation failOnError(boolean failOnError) {
         failOnError_ = failOnError;
@@ -535,6 +467,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param failOnViolation whether to exit and fail the build if violations are found
      * @return this operation
+     * @see #failOnError(boolean)
+     * @since 1.0
      */
     public PmdOperation failOnViolation(boolean failOnViolation) {
         failOnViolation_ = failOnViolation;
@@ -546,6 +480,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param languageVersion the language version
      * @return this operation
+     * @since 1.0
      */
     public PmdOperation forceLanguageVersion(LanguageVersion languageVersion) {
         forcedLanguageVersion_ = languageVersion;
@@ -586,6 +521,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param ignoreFile the ignore file path
      * @return this operation
+     * @see #ignoreFile(File)
+     * @see #ignoreFile(String)
+     * @since 1.0
      */
     public PmdOperation ignoreFile(Path ignoreFile) {
         ignoreFile_ = ignoreFile;
@@ -595,8 +533,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the path to the file containing a list of files to ignore, one path per line.
      *
-     * @param ignoreFile the ignore file path
+     * @param ignoreFile the ignore file
      * @return this operation
+     * @see #ignoreFile(Path)
+     * @see #ignoreFile(String)
+     * @since 1.0
      */
     public PmdOperation ignoreFile(File ignoreFile) {
         return ignoreFile(ignoreFile.toPath());
@@ -607,6 +548,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param ignoreFile the ignore file path
      * @return this operation
+     * @see #ignoreFile(Path)
+     * @see #ignoreFile(File)
+     * @since 1.0
      */
     public PmdOperation ignoreFile(String ignoreFile) {
         return ignoreFile(Path.of(ignoreFile));
@@ -615,9 +559,14 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Enables or disables line number in source file URIs.
      * <p>
-     * While clicking on the URI works in IntelliJ IDEA, Visual Studio Code, etc.; it might not in terminal emulators.
+     * While clicking on the URI works in IntelliJ IDEA, Visual Studio Code, etc.; it might
+     * not in terminal emulators.
      * <p>
-     * Default: {@code TRUE}
+     * Default: {@code true}
+     *
+     * @param includeLineNumber whether to include the line number in source file URIs
+     * @return this operation
+     * @since 1.0
      */
     public PmdOperation includeLineNumber(boolean includeLineNumber) {
         includeLineNumber_ = includeLineNumber;
@@ -626,6 +575,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Enables or disables incremental analysis.
+     *
+     * @param incrementalAnalysis whether to enable incremental analysis
+     * @return this operation
+     * @since 1.0
      */
     public PmdOperation incrementalAnalysis(boolean incrementalAnalysis) {
         incrementalAnalysis_ = incrementalAnalysis;
@@ -636,177 +589,144 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Creates a new initialized configuration.
      *
      * @param commandName the command name
-     * @return this operation
+     * @return a fully configured {@link PMDConfiguration}
+     * @since 1.0
      */
     public PMDConfiguration initConfiguration(String commandName) {
         var config = new PMDConfiguration();
 
-        // addRelativizeRoots
         config.addRelativizeRoots(relativizeRoots_);
+        config.collectFilesRecursively(collectFilesRecursively_);
 
-        // collectFilesRecursively
-        if (!collectFilesRecursively_) {
-            config.collectFilesRecursively(false);
+        if (prependAuxClasspath_ != null) {
+            config.prependAuxClasspath(prependAuxClasspath_);
+        }
+        if (forcedLanguageVersion_ != null) {
+            config.setForceLanguageVersion(forcedLanguageVersion_);
+        }
+        if (ignoreFile_ != null) {
+            config.setIgnoreFilePath(ignoreFile_);
+        }
+        if (inputUri_ != null) {
+            config.setInputUri(inputUri_);
         }
 
-        // prependAuxClasspath
-        if (prependClasspath_ != null) {
-            config.prependAuxClasspath(prependClasspath_);
-        }
-
-        // setAnalysisCacheLocation
         if (incrementalAnalysis_) {
             if (cache_ != null) {
                 config.setAnalysisCacheLocation(cache_.toFile().getAbsolutePath());
             } else if (project_ != null) {
                 config.setAnalysisCacheLocation(
-                        IOTools.resolveFile(
-                                project_.buildDirectory(),
-                                PMD_DIR,
-                                PMD_DIR + "-cache"
-                        ).getAbsolutePath()
-                );
+                        IOTools.resolveFile(project_.buildDirectory(), PMD_DIR, PMD_DIR + "-cache")
+                                .getAbsolutePath());
             }
         }
 
-        // setDefaultLanguageVersions
-        if (ObjectTools.isNotEmpty(languageVersions_)) {
-            config.setDefaultLanguageVersions(languageVersions_);
+        if (ObjectTools.isNotEmpty(defaultLanguageVersions_)) {
+            config.setDefaultLanguageVersions(defaultLanguageVersions_);
         }
 
-        // setExcludes
         if (ObjectTools.isNotEmpty(excludes_)) {
             config.setExcludes(excludes_);
         }
 
-        // setFailOnError
         config.setFailOnError(failOnError_);
-        // setFailOnViolation
         config.setFailOnViolation(failOnViolation_);
-
-        // setForceLanguageVersion
-        if (forcedLanguageVersion_ != null) {
-            config.setForceLanguageVersion(forcedLanguageVersion_);
-        }
-
-        // setIgnoreFilePath
-        if (ignoreFile_ != null) {
-            config.setIgnoreFilePath(ignoreFile_);
-        }
-
-        // setIgnoreIncrementalAnalysis
         config.setIgnoreIncrementalAnalysis(!incrementalAnalysis_);
 
-        // setInputPathList
         if (ObjectTools.isEmpty(inputPaths_)) {
             throw new IllegalArgumentException(commandName + ": InputPaths required.");
-        } else {
-            config.setInputPathList(inputPaths_);
         }
+        config.setInputPathList(inputPaths_);
 
-        // setInputUri
-        if (inputUri_ != null) {
-            config.setInputUri(inputUri_);
-        }
-
-        // setMinimumPriority
         config.setMinimumPriority(rulePriority_);
 
-        // setReportFile
-        config.setReportFile(Objects.requireNonNullElseGet(reportFile_,
-                () -> Paths.get(project_.buildDirectory().getPath(),
-                        PMD_DIR, PMD_DIR + "-report." + reportFormat_))
-        );
+        config.setReportFile(reportFile_ != null
+                ? reportFile_
+                : Paths.get(project_.buildDirectory().getPath(), PMD_DIR, PMD_DIR + "-report." + reportFormat_));
 
-        // setReportFormat
         config.setReportFormat(reportFormat_);
-
-        // setReportProperties
         config.setReportProperties(reportProperties_);
 
-        // setRuleSets
-        config.setRuleSets(ruleSets_);
+        config.setRuleSets(List.copyOf(ruleSets_));
 
-        // setShowSuppressedViolations
         config.setShowSuppressedViolations(showSuppressed_);
-        // setSourceEncoding
         config.setSourceEncoding(encoding_);
-        // setSuppressMarker
         config.setSuppressMarker(suppressedMarker_);
-
-        // setThreads
         config.setThreads(threads_);
 
         return config;
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
+     * Sets paths to source files or directories containing source files to analyze,
+     * replacing any previous entries.
      *
      * @param inputPath one or more paths
      * @return this operation
-     * @see #addInputPaths(Path...)
+     * @see #inputPaths(boolean, Path...)
+     * @see #inputPaths(Collection...)
+     * @see #inputPaths()
+     * @since 1.0
      */
     public PmdOperation inputPaths(Path... inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return inputPaths(List.of(inputPath));
-        }
-        return this;
+        return inputPaths(true, inputPath);
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
-     * <p>
-     * Previous entries are disregarded.
+     * Sets paths to source files or directories containing source files to analyze,
+     * replacing any previous entries.
      *
      * @param inputPath one or more paths
      * @return this operation
-     * @see #addInputPaths(File...)
+     * @see #inputPaths(boolean, File...)
+     * @see #inputPathsFiles(Collection...)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.0
      */
     public PmdOperation inputPaths(File... inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return inputPathsFiles(List.of(inputPath));
-        }
-        return this;
+        return inputPaths(true, inputPath);
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
-     * <p>
-     * Previous entries are disregarded.
+     * Sets paths to source files or directories containing source files to analyze,
+     * replacing any previous entries.
      *
      * @param inputPath one or more paths
      * @return this operation
-     * @see #addInputPaths(String...)
+     * @see #inputPaths(boolean, String...)
+     * @see #inputPathsStrings(Collection)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.0
      */
     public PmdOperation inputPaths(String... inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return inputPathsStrings(List.of(inputPath));
-        }
-        return this;
+        return inputPaths(true, inputPath);
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
-     * <p>
-     * Previous entries are disregarded.
+     * Sets paths to source files or directories containing source files to analyze,
+     * replacing any previous entries.
      *
      * @param inputPath a collection of input paths
      * @return this operation
-     * @see #addInputPaths(Collection)
+     * @see #inputPaths(boolean, Collection...)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.0
      */
-    public PmdOperation inputPaths(Collection<Path> inputPath) {
-        inputPaths_.clear();
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            inputPaths_.addAll(inputPath);
-        }
-        return this;
+    @SafeVarargs
+    public final PmdOperation inputPaths(Collection<Path>... inputPath) {
+        return inputPaths(true, inputPath);
     }
 
     /**
      * Returns paths to source files or directories containing source files to analyze.
      *
      * @return the input paths
+     * @see #inputPaths(Path...)
+     * @see #inputPaths(Collection...)
+     * @since 1.0
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<Path> inputPaths() {
@@ -815,77 +735,160 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Sets paths to source files or directories containing source files to analyze.
-     * <p>
-     * Previous entries are disregarded.
      *
-     * @param inputPath a collection of input paths
+     * @param clear     whether to clear existing entries before adding the new ones
+     * @param inputPath one or more paths
      * @return this operation
-     * @see #addInputPathsFiles(Collection)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths(Collection...)
+     * @see #inputPaths()
+     * @since 1.5.0
      */
-    public PmdOperation inputPathsFiles(Collection<File> inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return inputPaths(inputPath.stream().map(File::toPath).toList());
+    public PmdOperation inputPaths(boolean clear, Path... inputPath) {
+        if (clear) {
+            inputPaths_.clear();
         }
+        inputPaths_.addAll(CollectionTools.combine(inputPath));
         return this;
     }
 
     /**
      * Sets paths to source files or directories containing source files to analyze.
-     * <p>
-     * Previous entries are disregarded.
+     *
+     * @param clear     whether to clear existing entries before adding the new ones
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #inputPaths(File...)
+     * @see #inputPathsFiles(Collection...)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.5.0
+     */
+    public PmdOperation inputPaths(boolean clear, File... inputPath) {
+        if (clear) {
+            inputPaths_.clear();
+        }
+        inputPaths_.addAll(CollectionTools.combineFilesToPaths(inputPath));
+        return this;
+    }
+
+    /**
+     * Sets paths to source files or directories containing source files to analyze.
+     *
+     * @param clear     whether to clear existing entries before adding the new ones
+     * @param inputPath one or more paths
+     * @return this operation
+     * @see #inputPaths(String...)
+     * @see #inputPathsStrings(Collection)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.5.0
+     */
+    public PmdOperation inputPaths(boolean clear, String... inputPath) {
+        if (clear) {
+            inputPaths_.clear();
+        }
+        inputPaths_.addAll(CollectionTools.combineStringsToPaths(inputPath));
+        return this;
+    }
+
+    /**
+     * Sets paths to source files or directories containing source files to analyze.
+     *
+     * @param clear     whether to clear existing entries before adding the new ones
+     * @param inputPath a collection of input paths
+     * @return this operation
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.5.0
+     */
+    @SafeVarargs
+    public final PmdOperation inputPaths(boolean clear, Collection<Path>... inputPath) {
+        if (clear) {
+            inputPaths_.clear();
+        }
+        inputPaths_.addAll(CollectionTools.combine(inputPath));
+        return this;
+    }
+
+    /**
+     * Sets paths to source files or directories containing source files to analyze,
+     * replacing any previous entries.
      *
      * @param inputPath a collection of input paths
      * @return this operation
-     * @see #addInputPathsStrings(Collection)
+     * @see #inputPathsFiles(boolean, Collection...)
+     * @see #inputPaths(File...)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.0
+     */
+    @SafeVarargs
+    public final PmdOperation inputPathsFiles(Collection<File>... inputPath) {
+        return inputPathsFiles(true, inputPath);
+    }
+
+    /**
+     * Sets paths to source files or directories containing source files to analyze.
+     *
+     * @param clear     whether to clear existing entries before adding the new ones
+     * @param inputPath a collection of input paths
+     * @return this operation
+     * @see #inputPaths(File...)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.5.0
+     */
+    @SafeVarargs
+    public final PmdOperation inputPathsFiles(boolean clear, Collection<File>... inputPath) {
+        if (clear) {
+            inputPaths_.clear();
+        }
+        inputPaths_.addAll(CollectionTools.combineFilesToPaths(inputPath));
+        return this;
+    }
+
+    /**
+     * Sets paths to source files or directories containing source files to analyze,
+     * replacing any previous entries.
+     *
+     * @param inputPath a collection of input paths
+     * @return this operation
+     * @see #inputPathsStrings(boolean, Collection)
+     * @see #inputPaths(String...)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.0
      */
     public PmdOperation inputPathsStrings(Collection<String> inputPath) {
-        if (ObjectTools.isNotEmpty(inputPath)) {
-            return inputPaths(inputPath.stream().map(Paths::get).toList());
-        }
-        return this;
+        return inputPathsStrings(true, inputPath);
     }
 
     /**
-     * Sets the default language versions.
+     * Sets paths to source files or directories containing source files to analyze.
      *
-     * @param languageVersion one or more language versions
+     * @param clear     whether to clear existing entries before adding the new ones
+     * @param inputPath a collection of input paths
      * @return this operation
+     * @see #inputPaths(String...)
+     * @see #inputPaths(Path...)
+     * @see #inputPaths()
+     * @since 1.5.0
      */
-    public PmdOperation languageVersions(LanguageVersion... languageVersion) {
-        if (ObjectTools.isNotEmpty(languageVersion)) {
-            return languageVersions(List.of(languageVersion));
+    public PmdOperation inputPathsStrings(boolean clear, Collection<String> inputPath) {
+        if (clear) {
+            inputPaths_.clear();
         }
+        inputPaths_.addAll(CollectionTools.combineStringsToPaths(inputPath));
         return this;
-    }
-
-    /**
-     * Sets the default language versions.
-     *
-     * @param languageVersions a collection language version
-     * @return this operation
-     */
-    public PmdOperation languageVersions(Collection<LanguageVersion> languageVersions) {
-        languageVersions_.clear();
-        if (ObjectTools.isNotEmpty(languageVersions)) {
-            languageVersions_.addAll(languageVersions);
-        }
-        return this;
-    }
-
-    /**
-     * Returns the default language versions.
-     *
-     * @return the language versions
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public List<LanguageVersion> languageVersions() {
-        return languageVersions_;
     }
 
     /**
      * Sets the minimum priority threshold when loading Rules from RuleSets.
      *
+     * @param priority the minimum rule priority
      * @return this operation
+     * @since 1.0
      */
     public PmdOperation minimumPriority(RulePriority priority) {
         rulePriority_ = priority;
@@ -897,23 +900,28 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param commandName the command name
      * @param config      the configuration
-     * @return the number of violations
+     * @return the analysis results
      * @throws ExitStatusException if an error occurs
+     * @since 1.0
      */
-    public PmdAnalysisResults performPmdAnalysis(String commandName, PMDConfiguration config)
-            throws ExitStatusException {
+    public PmdAnalysisResults performPmdAnalysis(String commandName,
+                                                 PMDConfiguration config) throws ExitStatusException {
         try (var pmd = PmdAnalysis.create(config)) {
             var report = pmd.performAnalysisAndCollectReport();
 
-            if (LOGGER.isLoggable(Level.INFO) && !silent()) {
-                LOGGER.info(String.format("[%s] inputPaths%s", commandName, inputPaths_));
-                LOGGER.info(String.format("[%s] ruleSets%s", commandName, ruleSets_));
+            if (canLog(Level.INFO)) {
+                LOGGER.info(() -> "[%s] inputPaths%s".formatted(commandName, inputPaths_));
+                LOGGER.info(() -> "[%s] ruleSets%s".formatted(commandName, ruleSets_));
             }
 
-            var numViolations = report.getViolations().size();
+            var violations = report.getViolations();
+            var numViolations = violations.size();
+
             if (numViolations > 0) {
-                printViolations(commandName, config, report);
-            } else if (pmd.getReporter().numErrors() > 0 && failOnError_) {
+                printViolations(commandName, config, violations);
+            }
+
+            if (pmd.getReporter().numErrors() > 0 && failOnError_) {
                 throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
             }
 
@@ -930,28 +938,26 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
                     rulesChecked
             );
 
-            if (!silent()) {
-                if (LOGGER.isLoggable(Level.INFO)) {
-                    LOGGER.info(String.format("[%s] %d rules were checked.", commandName, result.rulesChecked()));
-                }
+            if (canLog(Level.INFO)) {
+                LOGGER.info(() -> "[%s] %d rules were checked.".formatted(commandName, result.rulesChecked()));
+            }
 
-                if (LOGGER.isLoggable(Level.WARNING)) {
-                    if (result.processingErrors() > 0) {
-                        for (var err : report.getProcessingErrors()) {
-                            LOGGER.warning(String.format("[%s] %s", commandName, err.getMsg()));
-                        }
-                    }
-
-                    if (result.configurationErrors() > 0) {
-                        for (var err : report.getConfigurationErrors()) {
-                            LOGGER.warning(String.format("[%s] %s", commandName, err.issue()));
-                        }
+            if (canLog(Level.WARNING)) {
+                if (result.processingErrors() > 0) {
+                    for (var err : report.getProcessingErrors()) {
+                        LOGGER.warning(() -> "[%s] %s".formatted(commandName, err.getMsg()));
                     }
                 }
 
-                if (LOGGER.isLoggable(Level.FINEST)) {
-                    LOGGER.finest(result.toString());
+                if (result.configurationErrors() > 0) {
+                    for (var err : report.getConfigurationErrors()) {
+                        LOGGER.warning(() -> "[%s] %s".formatted(commandName, err.issue()));
+                    }
                 }
+            }
+
+            if (canLog(Level.FINEST)) {
+                LOGGER.finest(result::toString);
             }
 
             return result;
@@ -959,19 +965,21 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Prepend the specified classpath like string to the current ClassLoader of the configuration. If no ClassLoader
-     * is currently configured, the ClassLoader used to load the PMDConfiguration class will be used as the parent
-     * ClassLoader of the created ClassLoader.
+     * Prepend the specified classpath-like string to the current ClassLoader of the configuration.
+     * If no ClassLoader is currently configured, the ClassLoader used to load the PMDConfiguration
+     * class will be used as the parent ClassLoader of the created ClassLoader.
      * <p>
-     * If the classpath String looks like a URL to a file (i.e., starts with {@code file://}) the file will be read with
-     * each line representing an entry on the classpath.
+     * If the classpath String looks like a URL to a file (i.e., starts with {@code file://}) the
+     * file will be read with each line representing an entry on the classpath.
      *
-     * @param classpath one or more classpath
+     * @param classpath one or more classpath entries
      * @return this operation
+     * @see #prependAuxClasspath()
+     * @since 1.0
      */
     public PmdOperation prependAuxClasspath(String... classpath) {
         if (ObjectTools.isNotEmpty(classpath)) {
-            prependClasspath_ = String.join(File.pathSeparator, classpath);
+            prependAuxClasspath_ = String.join(File.pathSeparator, classpath);
         }
         return this;
     }
@@ -980,9 +988,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Returns the prepended classpath.
      *
      * @return the classpath
+     * @see #prependAuxClasspath(String...)
+     * @since 1.0
      */
     public String prependAuxClasspath() {
-        return prependClasspath_;
+        return prependAuxClasspath_;
     }
 
     /**
@@ -990,12 +1000,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param relativeRoot one or more relative root paths
      * @return this operation
-     * @see #relativizeRoots(Collection)
+     * @see #relativizeRoots(Collection...)
+     * @see #relativizeRoots()
+     * @since 1.0
      */
     public PmdOperation relativizeRoots(Path... relativeRoot) {
-        if (ObjectTools.isNotEmpty(relativeRoot)) {
-            return relativizeRoots(List.of(relativeRoot));
-        }
+        relativizeRoots_.addAll(CollectionTools.combine(relativeRoot));
         return this;
     }
 
@@ -1004,12 +1014,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param relativeRoot one or more relative root paths
      * @return this operation
-     * @see #relativizeRootsFiles(Collection)
+     * @see #relativizeRootsFiles(Collection...)
+     * @see #relativizeRoots(Path...)
+     * @see #relativizeRoots()
+     * @since 1.0
      */
     public PmdOperation relativizeRoots(File... relativeRoot) {
-        if (ObjectTools.isNotEmpty(relativeRoot)) {
-            return relativizeRootsFiles(List.of(relativeRoot));
-        }
+        relativizeRoots_.addAll(CollectionTools.combineFilesToPaths(relativeRoot));
         return this;
     }
 
@@ -1018,12 +1029,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param relativeRoot one or more relative root paths
      * @return this operation
-     * @see #relativizeRootsStrings(Collection)
+     * @see #relativizeRootsStrings(Collection...)
+     * @see #relativizeRoots(Path...)
+     * @see #relativizeRoots()
+     * @since 1.0
      */
     public PmdOperation relativizeRoots(String... relativeRoot) {
-        if (ObjectTools.isNotEmpty(relativeRoot)) {
-            return relativizeRootsStrings(List.of(relativeRoot));
-        }
+        relativizeRoots_.addAll(CollectionTools.combineStringsToPaths(relativeRoot));
         return this;
     }
 
@@ -1033,11 +1045,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param relativeRoot a collection of relative root paths
      * @return this operation
      * @see #relativizeRoots(Path...)
+     * @see #relativizeRoots()
+     * @since 1.0
      */
-    public PmdOperation relativizeRoots(Collection<Path> relativeRoot) {
-        if (ObjectTools.isNotEmpty(relativeRoot)) {
-            relativizeRoots_.addAll(relativeRoot);
-        }
+    @SafeVarargs
+    public final PmdOperation relativizeRoots(Collection<Path>... relativeRoot) {
+        relativizeRoots_.addAll(CollectionTools.combine(relativeRoot));
         return this;
     }
 
@@ -1045,6 +1058,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Returns paths to shorten paths that are output in the report.
      *
      * @return the relative root paths
+     * @see #relativizeRoots(Path...)
+     * @see #relativizeRoots(Collection...)
+     * @since 1.0
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<Path> relativizeRoots() {
@@ -1057,11 +1073,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param relativeRoot a collection of relative root paths
      * @return this operation
      * @see #relativizeRoots(File...)
+     * @see #relativizeRoots(Path...)
+     * @see #relativizeRoots()
+     * @since 1.0
      */
-    public PmdOperation relativizeRootsFiles(Collection<File> relativeRoot) {
-        if (ObjectTools.isNotEmpty(relativeRoot)) {
-            return relativizeRoots(relativeRoot.stream().map(File::toPath).toList());
-        }
+    @SafeVarargs
+    public final PmdOperation relativizeRootsFiles(Collection<File>... relativeRoot) {
+        relativizeRoots_.addAll(CollectionTools.combineFilesToPaths(relativeRoot));
         return this;
     }
 
@@ -1071,11 +1089,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param relativeRoot a collection of relative root paths
      * @return this operation
      * @see #relativizeRoots(String...)
+     * @see #relativizeRoots(Path...)
+     * @see #relativizeRoots()
+     * @since 1.0
      */
-    public PmdOperation relativizeRootsStrings(Collection<String> relativeRoot) {
-        if (ObjectTools.isNotEmpty(relativeRoot)) {
-            return relativizeRoots(relativeRoot.stream().map(Path::of).toList());
-        }
+    @SafeVarargs
+    public final PmdOperation relativizeRootsStrings(Collection<String>... relativeRoot) {
+        relativizeRoots_.addAll(CollectionTools.combineStringsToPaths(relativeRoot));
         return this;
     }
 
@@ -1084,6 +1104,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param reportFile the report file path
      * @return this operation
+     * @see #reportFile(File)
+     * @see #reportFile(String)
+     * @see #reportFile()
+     * @since 1.0
      */
     public PmdOperation reportFile(Path reportFile) {
         reportFile_ = reportFile;
@@ -1093,8 +1117,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Sets the path to the report page.
      *
-     * @param reportFile the report file path
+     * @param reportFile the report file
      * @return this operation
+     * @see #reportFile(Path)
+     * @see #reportFile(String)
+     * @see #reportFile()
+     * @since 1.0
      */
     public PmdOperation reportFile(File reportFile) {
         return reportFile(reportFile.toPath());
@@ -1105,6 +1133,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param reportFile the report file path
      * @return this operation
+     * @see #reportFile(Path)
+     * @see #reportFile(File)
+     * @see #reportFile()
+     * @since 1.0
      */
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public PmdOperation reportFile(String reportFile) {
@@ -1114,7 +1146,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Returns the path to the report file.
      *
-     * @return the path
+     * @return the report file path
+     * @see #reportFile(Path)
+     * @see #reportFile(File)
+     * @see #reportFile(String)
+     * @since 1.0
      */
     public Path reportFile() {
         return reportFile_;
@@ -1125,6 +1161,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param reportFormat the report format
      * @return this operation
+     * @since 1.0
      */
     public PmdOperation reportFormat(String reportFormat) {
         reportFormat_ = reportFormat;
@@ -1136,9 +1173,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param reportProperties the report properties
      * @return this operation
+     * @since 1.0
      */
     public PmdOperation reportProperties(Properties reportProperties) {
-        reportProperties_.clear();
         if (ObjectTools.isNotEmpty(reportProperties)) {
             reportProperties_.putAll(reportProperties);
         }
@@ -1313,8 +1350,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Enables or disables adding the suppressed rule violations to the report.
      *
-     * @param showSuppressed {@code true} or {@code false}
+     * @param showSuppressed whether to add suppressed violations to the report
      * @return this operation
+     * @since 1.0
      */
     public PmdOperation showSuppressed(boolean showSuppressed) {
         showSuppressed_ = showSuppressed;
@@ -1324,8 +1362,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     /**
      * Specifies the comment token that marks lines which should be ignored. The default is {@code NOPMD}.
      *
-     * @param suppressedMarker the suppressed marker
+     * @param suppressedMarker the suppressed marker token
      * @return this operation
+     * @since 1.0
      */
     public PmdOperation suppressedMarker(String suppressedMarker) {
         suppressedMarker_ = suppressedMarker;
@@ -1337,6 +1376,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param threads the number of threads
      * @return this operation
+     * @since 1.0
      */
     public PmdOperation threads(int threads) {
         threads_ = threads;
@@ -1348,45 +1388,53 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputUri the input URI
      * @return this operation
+     * @since 1.0
      */
     public PmdOperation uri(URI inputUri) {
         inputUri_ = inputUri;
         return this;
     }
 
-    private void printViolations(String commandName, PMDConfiguration config, Report report)
-            throws ExitStatusException {
-        final String msgFormat = includeLineNumber_ ?
-                "[%s] %s:%d\n\t%s (%s)\n\t\t--> %s" :
-                "[%s] %s (line: %d)\n\t%s (%s)\n\t\t--> %s";
-        for (var v : report.getViolations()) {
-            if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-                LOGGER.log(Level.WARNING,
-                        String.format(msgFormat,
-                                commandName,
-                                v.getFileId().getUriString(),
-                                v.getBeginLine(),
-                                v.getRule().getName(),
-                                v.getRule().getExternalInfoUrl(),
-                                v.getDescription()));
+    /**
+     * Returns {@code true} when logging at {@code level} is both enabled and
+     * not suppressed by {@link #silent()}.
+     */
+    private boolean canLog(Level level) {
+        return !silent() && LOGGER.isLoggable(level);
+    }
+
+    /**
+     * Logs each violation and throws or warns depending on {@link #failOnViolation_}.
+     * Accepts the pre-fetched violations list to avoid calling {@code report.getViolations()} twice.
+     */
+    private void printViolations(String commandName,
+                                 PMDConfiguration config,
+                                 List<RuleViolation> violations) throws ExitStatusException {
+        if (canLog(Level.WARNING)) {
+            final String msgFormat = includeLineNumber_ ? MSG_FORMAT_WITH_LINE : MSG_FORMAT_NO_LINE;
+            for (var v : violations) {
+                LOGGER.warning(() -> msgFormat.formatted(
+                        commandName,
+                        v.getFileId().getUriString(),
+                        v.getBeginLine(),
+                        v.getRule().getName(),
+                        v.getRule().getExternalInfoUrl(),
+                        v.getDescription()));
             }
         }
-
-        var violations = new StringBuilder(
-                String.format("[%s] %d rule violations were found.", commandName, report.getViolations().size()));
 
         var reportFilePath = config.getReportFilePath();
-        if (reportFilePath != null) {
-            violations.append(" See the report at: ").append(reportFilePath.toUri());
-        }
+        var suffix = reportFilePath != null ? " See the report at: " + reportFilePath.toUri() : "";
+        var summary = "[%s] %d rule violations were found.%s"
+                .formatted(commandName, violations.size(), suffix);
 
         if (config.isFailOnViolation()) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.log(Level.SEVERE, violations.toString());
+            if (canLog(Level.SEVERE)) {
+                LOGGER.severe(summary);
             }
             throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-            LOGGER.warning(violations.toString());
+        } else if (canLog(Level.WARNING)) {
+            LOGGER.warning(summary);
         }
     }
 }
