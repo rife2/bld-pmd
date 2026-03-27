@@ -23,9 +23,11 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class PmdAnalysisResultsTests {
+
     @Nested
     @DisplayName("Errors Tests")
     class ErrorsTests {
+
         @Test
         void hasConfigurationErrors() {
             var results = new PmdAnalysisResults(
@@ -66,6 +68,7 @@ class PmdAnalysisResultsTests {
     @Nested
     @DisplayName("Violations Tests")
     class ViolationsTests {
+
         @Test
         void hasNoViolations() {
             var results = new PmdAnalysisResults(

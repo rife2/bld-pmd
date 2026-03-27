@@ -23,6 +23,7 @@ package java;
  * @since 1.0
  */
 public class ErrorProne {
+
     static int x;
 
     public ErrorProne(int y) {

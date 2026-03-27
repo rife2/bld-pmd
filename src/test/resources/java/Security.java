@@ -25,6 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
  * @since 1.0
  */
 public class Security {
+
     void bad() {
         SecretKeySpec secretKeySpec = new SecretKeySpec("my secret here".getBytes(), "AES");
     }

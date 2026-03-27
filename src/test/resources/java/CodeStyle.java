@@ -23,6 +23,7 @@ package java;
  * @since 1.0
  */
 public final class CodeStyle {
+
     final int FinalField = 1;
     private int x;
     private int y; // class cannot be subclassed, so is y really private or package visible?

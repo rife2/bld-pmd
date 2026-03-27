@@ -21,6 +21,7 @@ package java;
  * @since 1.0
  */
 public class Documentation {
+
     public Documentation() {
         // This constructor is intentionally empty. Nothing special is needed here.
     }

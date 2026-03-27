@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
  * @since 1.0
  */
 public class MultiThreading {
+
     private static final SimpleDateFormat sdf = new SimpleDateFormat();
     /*volatile */ Object baz = null; // fix for Java5 and later: volatile
     private volatile String var1; // not suggested

@@ -23,6 +23,7 @@ package java;
  * @since 1.0
  */
 public class Design {
+
     String field;
     int otherField;
 

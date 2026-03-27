@@ -23,6 +23,7 @@ package java;
  * @since 1.0
  */
 public class BestPractices {
+
     private final String ip = "127.0.0.1"; // not recommended
     private StringBuffer buffer; // potential memory leak as an instance variable;
     private String[] x;

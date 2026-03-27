@@ -23,6 +23,7 @@ package java;
  * @since 1.0
  */
 public class Performance {
+
     public static void main(String[] as) {
         for (int i = 0; i < 10; i++) {
             Performance p = new Performance(); // Avoid this whenever you can it's really expensive
