@@ -23,7 +23,9 @@ import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.rule.RulePriority;
 import net.sourceforge.pmd.reporting.Report;
 import rife.bld.BaseProject;
+import rife.bld.extension.pmd.JavaRules;
 import rife.bld.extension.pmd.PmdAnalysisResults;
+import rife.bld.extension.tools.CollectionTools;
 import rife.bld.extension.tools.IOTools;
 import rife.bld.extension.tools.ObjectTools;
 import rife.bld.operations.AbstractOperation;
@@ -557,25 +559,25 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * The defaults are:
      * <ul>
      * <li>cache={@code build/pmd/pmd-cache}</li>
-     * <li>encoding={@code UTF-9}</li>
-     * <li>incrementAnalysis={@code true}</li>
+     * <li>encoding={@code UTF-8}</li>
+     * <li>incrementalAnalysis={@code true}</li>
      * <li>inputPaths={@code [src/main, src/test]}</li>
-     * <li>reportFile={@code build/pmd/pmd-report-txt}</li>
+     * <li>reportFile={@code build/pmd/pmd-report.txt}</li>
      * <li>reportFormat={@code text}</li>
      * <li>rulePriority={@code LOW}</li>
-     * <li>ruleSets={@code [rulesets/java/quickstart.xml]}</li>
+     * <li>ruleSets={@link JavaRules#QUICK_START}</li>
      * <li>suppressedMarker={@code NOPMD}</li>
      * </ul>
      *
      * @param project the project
      * @return this operation
+     * @since 1.0
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public PmdOperation fromProject(BaseProject project) {
         project_ = project;
-
         inputPaths(project.srcMainDirectory(), project.srcTestDirectory());
-        ruleSets_.add(RULE_SET_DEFAULT);
+        ruleSets(JavaRules.QUICK_START);
         return this;
     }
 
@@ -1144,68 +1146,168 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets new rule set paths, disregarding any previous entries.
-     * <p>
-     * The built-in rule set paths are:
-     * <ul>
-     *     <li>{@code rulesets/java/quickstart.xml}</li>
-     *     <li>{@code category/java/bestpractices.xml}</li>
-     *     <li>{@code category/java/codestyle.xml}</li>
-     *     <li>{@code category/java/design.xml}</li>
-     *     <li>{@code category/java/documentation.xml}</li>
-     *     <li>{@code category/java/errorprone.xml}</li>
-     *     <li>{@code category/java/multithreading.xml}</li>
-     *     <li>{@code category/java/performance.xml}</li>
-     *     <li>{@code category/java/security.xml}</li>
-     * </ul>
+     * Sets new rule set paths, replacing any previous entries.
      *
-     * @param ruleSet one or more rule set
+     * @param ruleSet one or more rule set paths
      * @return this operation
-     * @see #addRuleSet(String...)
+     * @see #ruleSets(boolean, String...)
+     * @see #ruleSets(Collection...)
+     * @see #ruleSets(JavaRules...)
+     * @see #ruleSetsRules(Collection...)
+     * @see #ruleSets()
+     * @since 1.0
      */
     public PmdOperation ruleSets(String... ruleSet) {
-        if (ObjectTools.isNotEmpty(ruleSet)) {
-            return ruleSets(List.of(ruleSet));
-        }
-        return this;
+        return ruleSets(true, ruleSet);
     }
 
     /**
-     * Sets new rule set paths, disregarding any previous entries.
-     * <p>
-     * The built-in rule set paths are:
-     * <ul>
-     *     <li>{@code rulesets/java/quickstart.xml}</li>
-     *     <li>{@code category/java/bestpractices.xml}</li>
-     *     <li>{@code category/java/codestyle.xml}</li>
-     *     <li>{@code category/java/design.xml}</li>
-     *     <li>{@code category/java/documentation.xml}</li>
-     *     <li>{@code category/java/errorprone.xml}</li>
-     *     <li>{@code category/java/multithreading.xml}</li>
-     *     <li>{@code category/java/performance.xml}</li>
-     *     <li>{@code category/java/security.xml}</li>
-     * </ul>
+     * Sets new rule set paths, replacing any previous entries.
+     *
+     * @param ruleSet one or more rule set paths
+     * @return this operation
+     * @see #ruleSets(boolean, Collection...)
+     * @see #ruleSets(String...)
+     * @see #ruleSets(JavaRules...)
+     * @see #ruleSetsRules(Collection...)
+     * @see #ruleSets()
+     * @since 1.0
+     */
+    @SafeVarargs
+    public final PmdOperation ruleSets(Collection<String>... ruleSet) {
+        return ruleSets(true, ruleSet);
+    }
+
+    /**
+     * Sets new rule set paths, replacing any previous entries.
      *
      * @param ruleSet a collection of rule set paths
      * @return this operation
-     * @see #addRuleSet(Collection)
+     * @see #ruleSets(boolean, JavaRules...)
+     * @see #ruleSets(String...)
+     * @see #ruleSets(Collection...)
+     * @see #ruleSetsRules(Collection...)
+     * @see #ruleSets()
+     * @since 1.5.0
      */
-    public PmdOperation ruleSets(Collection<String> ruleSet) {
-        ruleSets_.clear();
-        if (ObjectTools.isNotEmpty(ruleSet)) {
-            ruleSets_.addAll(ruleSet);
-        }
-        return this;
+    public final PmdOperation ruleSets(JavaRules... ruleSet) {
+        return ruleSets(true, ruleSet);
     }
 
     /**
      * Returns the rule set paths.
      *
      * @return the rule sets
+     * @see #ruleSets(String...)
+     * @see #ruleSets(Collection...)
+     * @see #ruleSets(JavaRules...)
+     * @see #ruleSetsRules(Collection...)
+     * @since 1.0
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public List<String> ruleSets() {
+    public Set<String> ruleSets() {
         return ruleSets_;
+    }
+
+    /**
+     * Sets rule set paths.
+     *
+     * @param clear   whether to clear existing entries before adding the new ones
+     * @param ruleSet one or more rule set paths
+     * @return this operation
+     * @see #ruleSets(String...)
+     * @see #ruleSets(Collection...)
+     * @see #ruleSets(JavaRules...)
+     * @see #ruleSetsRules(Collection...)
+     * @see #ruleSets()
+     * @since 1.5.0
+     */
+    public PmdOperation ruleSets(boolean clear, String... ruleSet) {
+        if (clear) {
+            ruleSets_.clear();
+        }
+        ruleSets_.addAll(List.of(ruleSet));
+        return this;
+    }
+
+    /**
+     * Sets rule set paths.
+     *
+     * @param clear   whether to clear existing entries before adding the new ones
+     * @param ruleSet one or more rule set paths
+     * @return this operation
+     * @see #ruleSets(String...)
+     * @see #ruleSets(Collection...)
+     * @see #ruleSets(JavaRules...)
+     * @see #ruleSetsRules(Collection...)
+     * @see #ruleSets()
+     * @since 1.5.0
+     */
+    @SafeVarargs
+    public final PmdOperation ruleSets(boolean clear, Collection<String>... ruleSet) {
+        if (clear) {
+            ruleSets_.clear();
+        }
+        ruleSets_.addAll(CollectionTools.combine(ruleSet));
+        return this;
+    }
+
+    /**
+     * Sets rule set paths.
+     *
+     * @param clear   whether to clear existing entries before adding the new ones
+     * @param ruleSet a collection of rule set paths
+     * @return this operation
+     * @see #ruleSets(String...)
+     * @see #ruleSets(Collection...)
+     * @see #ruleSetsRules(Collection...)
+     * @see #ruleSets()
+     * @since 1.5.0
+     */
+    public final PmdOperation ruleSets(boolean clear, JavaRules... ruleSet) {
+        if (clear) {
+            ruleSets_.clear();
+        }
+        ruleSets_.addAll(Arrays.stream(ruleSet).map(JavaRules::getCategory).toList());
+        return this;
+    }
+
+    /**
+     * Sets new rule set paths, replacing any previous entries.
+     *
+     * @param ruleSet a collection of rule set paths
+     * @return this operation
+     * @see #ruleSetsRules(boolean, Collection...)
+     * @see #ruleSets(String...)
+     * @see #ruleSets(Collection...)
+     * @see #ruleSets(JavaRules...)
+     * @see #ruleSets()
+     * @since 1.5.0
+     */
+    @SafeVarargs
+    public final PmdOperation ruleSetsRules(Collection<JavaRules>... ruleSet) {
+        return ruleSetsRules(true, ruleSet);
+    }
+
+    /**
+     * Sets rule set paths.
+     *
+     * @param clear   whether to clear existing entries before adding the new ones
+     * @param ruleSet a collection of rule set paths
+     * @return this operation
+     * @see #ruleSets(String...)
+     * @see #ruleSets(Collection...)
+     * @see #ruleSets(JavaRules...)
+     * @see #ruleSets()
+     * @since 1.5.0
+     */
+    @SafeVarargs
+    public final PmdOperation ruleSetsRules(boolean clear, Collection<JavaRules>... ruleSet) {
+        if (clear) {
+            ruleSets_.clear();
+        }
+        ruleSets_.addAll(CollectionTools.combine(ruleSet).stream().map(JavaRules::getCategory).toList());
+        return this;
     }
 
     /**

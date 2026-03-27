@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import rife.bld.BaseProject;
+import rife.bld.extension.pmd.JavaRules;
 import rife.bld.extension.testing.LoggingExtension;
 import rife.bld.operations.exceptions.ExitStatusException;
 
@@ -88,11 +89,12 @@ class PmdOperationTests {
     @Nested
     @DisplayName("Configuration Tests")
     class ConfigurationTests {
+
         @Test
         void cache() throws ExitStatusException {
             var cache = Path.of("build/pmd/temp-cache");
             var pmd = newPmdOperation()
-                    .ruleSets(CODE_STYLE_XML)
+                    .ruleSets(JavaRules.CODE_STYLE)
                     .inputPaths(List.of(CODE_STYLE_SAMPLE))
                     .cache(cache);
 
@@ -105,10 +107,31 @@ class PmdOperationTests {
 
         @Test
         void collectFilesRecursively() {
-            var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).collectFilesRecursively(false);
+            var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).collectFilesRecursively(false);
 
             var config = pmd.initConfiguration(COMMAND_NAME);
             assertThat(config.collectFilesRecursively()).isFalse();
+        }
+
+        @Test
+        void defaultLanguageVersions() throws ExitStatusException {
+            var language = LanguageRegistry.PMD.getLanguageById("java");
+            assertThat(language).isNotNull();
+
+            var pmd = newPmdOperation()
+                    .forceLanguageVersion(language.getLatestVersion())
+                    .defaultLanguageVersions(language.getVersions())
+                    .ruleSets(JavaRules.QUICK_START);
+
+            assertThat(pmd.defaultLanguageVersions()).as("should contain default language version")
+                    .contains(language.getDefaultVersion());
+            assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).processingErrors())
+                    .as("should have processing errors").isGreaterThan(0);
+
+            assertThat(pmd.defaultLanguageVersions(language.getVersion("17"), language.getVersion("21"))
+                    .excludesStrings("src/test/resources/txt", "src/test/resources/xml")
+                    .performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).configurationErrors())
+                    .as("should have no processing errors").isEqualTo(0);
         }
 
         @Test
@@ -198,21 +221,21 @@ class PmdOperationTests {
 
         @Test
         void showSuppressed() {
-            var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).showSuppressed(true);
+            var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).showSuppressed(true);
             var config = pmd.initConfiguration(COMMAND_NAME);
             assertThat(config.isShowSuppressedViolations()).isTrue();
         }
 
         @Test
         void suppressedMarker() {
-            var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).suppressedMarker(TEST);
+            var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).suppressedMarker(TEST);
             var config = pmd.initConfiguration(COMMAND_NAME);
             assertThat(config.getSuppressMarker()).isEqualTo(TEST);
         }
 
         @Test
         void threads() {
-            var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).threads(5);
+            var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).threads(5);
             var config = pmd.initConfiguration(COMMAND_NAME);
             assertThat(config.getThreads()).isEqualTo(5);
         }
@@ -220,7 +243,7 @@ class PmdOperationTests {
         @Test
         void uri() throws URISyntaxException {
             var uri = new URI("https://example.com");
-            var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).uri(uri);
+            var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).uri(uri);
             var config = pmd.initConfiguration(COMMAND_NAME);
             assertThat(config.getUri()).isEqualTo(uri);
         }
@@ -332,7 +355,7 @@ class PmdOperationTests {
 
             @Test
             void failOnValidation() {
-                var pmd = newPmdOperation().ruleSets(DOCUMENTATION_XML)
+                var pmd = newPmdOperation().ruleSets(JavaRules.DOCUMENTATION)
                         .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
                 assertThatCode(() -> pmd.failOnViolation(true).performPmdAnalysis(TEST,
                         pmd.initConfiguration(COMMAND_NAME))).isInstanceOf(ExitStatusException.class);
@@ -344,12 +367,13 @@ class PmdOperationTests {
         @Nested
         @DisplayName("Ignore File Tests")
         class IgnoreFileTests {
+
             @Test
             void ignoreFile() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets(ERROR_PRONE_XML, CODE_STYLE_XML)
-                        .inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE)
+                        .ruleSets(JavaRules.ERROR_PRONE, JavaRules.CODE_STYLE)
                         .ignoreFile(Path.of("src/test/resources/txt/ignore.txt"));
+                pmd.inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as("%s for error prone and code style", ANALYSIS_SUCCESS).isEqualTo(0);
@@ -358,9 +382,9 @@ class PmdOperationTests {
             @Test
             void ignoreSingleFile() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets(ERROR_PRONE_XML)
-                        .inputPaths(ERROR_PRONE_SAMPLE)
+                        .ruleSets(JavaRules.ERROR_PRONE)
                         .ignoreFile(new File("src/test/resources/txt/ignore-single.txt"));
+                pmd.inputPaths(ERROR_PRONE_SAMPLE);
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as("%s for error prone sample", ANALYSIS_SUCCESS).isEqualTo(0);
@@ -370,11 +394,14 @@ class PmdOperationTests {
         @Nested
         @DisplayName("Input Paths Tests")
         class InputPathsTests {
+
+            final BaseProject project = new BaseProject();
+
             @Test
-            void fileArray() throws ExitStatusException {
+            void inputPathsAsArray() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
-                        .inputPaths(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile());
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
 
                 assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
@@ -382,20 +409,11 @@ class PmdOperationTests {
             }
 
             @Test
-            void mainOperation() throws ExitStatusException {
+            void inputPathsAsFileArray() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .inputPaths(new File("src/main"))
-                        .performPmdAnalysis(TEST, newPmdOperation().initConfiguration(COMMAND_NAME))
-                        .violations();
-
-                assertThat(pmd).as(ANALYSIS_SUCCESS).isEqualTo(0);
-            }
-
-            @Test
-            void pathArray() throws ExitStatusException {
-                var pmd = newPmdOperation()
-                        .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
-                        .inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd.inputPaths(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile());
 
                 assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
@@ -403,10 +421,11 @@ class PmdOperationTests {
             }
 
             @Test
-            void pathList() throws ExitStatusException {
+            void inputPathsAsFileArrayNoClear() {
                 var pmd = newPmdOperation()
-                        .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
-                        .inputPathsFiles(List.of(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile()));
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd.inputPaths(false, ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile());
 
                 assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
@@ -425,10 +444,11 @@ class PmdOperationTests {
             }
 
             @Test
-            void stringList() throws ExitStatusException {
+            void inputPathsAsList() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets(PmdOperation.RULE_SET_DEFAULT, CODE_STYLE_XML)
-                        .inputPathsStrings(List.of(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString()));
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd = pmd.inputPathsFiles(List.of(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile()));
 
                 assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
@@ -436,13 +456,11 @@ class PmdOperationTests {
             }
 
             @Test
-            void xml() throws ExitStatusException {
-                var pmd = newPmdOperation().addInputPaths("src/test/resources/xml/pmd.xml")
-                        .ruleSets("src/test/resources/xml/basic.xml");
-
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).configurationErrors())
-                        .isEqualTo(0);
-            }
+            void inputPathsAsListNoClear() {
+                var pmd = newPmdOperation()
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd.inputPathsFiles(false, List.of(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile()));
 
             @Nested
             @DisplayName("Add Input Paths Tests")
@@ -501,18 +519,79 @@ class PmdOperationTests {
                             .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
                 }
 
-                @Test
-                void addInputPathsAsStringList() {
-                    var pmd = new PmdOperation().fromProject(project);
-                    pmd.inputPaths().clear();
-                    pmd = pmd.addInputPathsStrings(
-                            List.of(project.srcMainDirectory().getAbsolutePath(),
-                                    project.srcTestDirectory().getAbsolutePath())
-                    );
+            @Test
+            void inputPathsAsStringArray() throws ExitStatusException {
+                var pmd = newPmdOperation()
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd.inputPaths(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString());
 
-                    assertThat(pmd.inputPaths()).as("List(String...)")
-                            .containsExactly(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-                }
+                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                        .as(ANALYSIS_FAILURE).isGreaterThan(0);
+            }
+
+            @Test
+            void inputPathsAsStringArrayNoClear() {
+                var pmd = newPmdOperation()
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                pmd.inputPaths(false, ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString());
+
+                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
+                        ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+
+            }
+
+            @Test
+            void inputPathsAsStringList() throws ExitStatusException {
+                var pmd = newPmdOperation()
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths(FILE_FOO, FILE_BAR);
+                assertThat(pmd.inputPaths()).containsExactly(FILE_FOO.toPath(), FILE_BAR.toPath());
+
+                pmd = pmd.inputPathsStrings(List.of(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString()));
+
+                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                        .as(ANALYSIS_FAILURE).isGreaterThan(0);
+            }
+
+            @Test
+            void inputPathsAsStringListNoClear() {
+                var pmd = newPmdOperation()
+                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd.inputPaths("foo");
+                pmd.inputPathsStrings(false, List.of(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString()));
+
+                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, ERROR_PRONE_SAMPLE,
+                        CODE_STYLE_SAMPLE);
+            }
+
+            @Test
+            void inputPathsAsXml() throws ExitStatusException {
+                var pmd = newPmdOperation()
+                        .inputPaths("foo.xml")
+                        .inputPaths("src/test/resources/xml/pmd.xml")
+                        .ruleSets("src/test/resources/xml/basic.xml");
+
+                assertThat(pmd.inputPaths()).containsExactly(Path.of("src/test/resources/xml/pmd.xml"));
+
+                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).configurationErrors())
+                        .isEqualTo(0);
+            }
+
+            @Test
+            void inputPathsAsXmlNoClear() {
+                var pmd = newPmdOperation()
+                        .inputPaths("src/test/resources/xml/pmd.xml")
+                        .inputPaths(false, "src/test/resources/xml/basic.xml")
+                        .ruleSets("src/test/resources/xml/basic.xml");
+
+                assertThat(pmd.inputPaths()).containsExactly(
+                        Path.of("src/test/resources/xml/pmd.xml"),
+                        Path.of("src/test/resources/xml/basic.xml"));
+            }
 
                 @Test
                 void addInputPathsWithDefaults() {
@@ -527,12 +606,13 @@ class PmdOperationTests {
         @DisplayName("Reporting Tests")
         @SuppressWarnings("PMD.RelianceOnDefaultCharset")
         class ReportingTests {
+
             @Test
             void reportFile() throws FileNotFoundException, ExitStatusException {
                 var report = new File("build", "pmd-report-file");
                 report.deleteOnExit();
                 var pmd = newPmdOperation()
-                        .ruleSets(List.of(ERROR_PRONE_XML, DESIGN_XML))
+                        .ruleSetsRules(List.of(JavaRules.ERROR_PRONE, JavaRules.DESIGN))
                         .reportFile(report);
 
                 pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME));
@@ -550,7 +630,7 @@ class PmdOperationTests {
             @Test
             void reportFormat() throws IOException, ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets(ERROR_PRONE_XML)
+                        .ruleSets(JavaRules.ERROR_PRONE)
                         .reportFormat("xml")
                         .inputPaths(ERROR_PRONE_SAMPLE);
 
@@ -564,7 +644,7 @@ class PmdOperationTests {
 
             @Test
             void reportProperties() throws ExitStatusException {
-                var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML, ERROR_PRONE_XML)
+                var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE, JavaRules.ERROR_PRONE)
                         .includeLineNumber(true)
                         .reportProperties(new Properties());
 
@@ -576,10 +656,11 @@ class PmdOperationTests {
         @Nested
         @DisplayName("RuleSets Tests")
         class RuleSetsTests {
+
             @Test
             void javaBestPractices() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets("category/java/bestpractices.xml")
+                        .ruleSets(JavaRules.BEST_PRACTICES)
                         .inputPaths(Path.of("src/test/resources/java/BestPractices.java"));
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
@@ -588,7 +669,7 @@ class PmdOperationTests {
 
             @Test
             void javaCodeStyle() throws ExitStatusException {
-                var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML).inputPaths(CODE_STYLE_SAMPLE);
+                var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE).inputPaths(CODE_STYLE_SAMPLE);
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
@@ -596,12 +677,12 @@ class PmdOperationTests {
 
             @Test
             void javaCodeStyleAndErrorProne() throws ExitStatusException {
-                var pmd = newPmdOperation().ruleSets(CODE_STYLE_XML).inputPaths(CODE_STYLE_SAMPLE);
+                var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE).inputPaths(CODE_STYLE_SAMPLE);
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as("analysis with code style").isGreaterThan(0);
 
-                pmd = pmd.ruleSets(ERROR_PRONE_XML).inputPaths(ERROR_PRONE_SAMPLE);
+                pmd = pmd.ruleSets(JavaRules.ERROR_PRONE).inputPaths(ERROR_PRONE_SAMPLE);
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as("analysis with code style and error prone").isGreaterThan(0);
             }
@@ -609,7 +690,7 @@ class PmdOperationTests {
             @Test
             void javaDesign() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets(DESIGN_XML)
+                        .ruleSets(JavaRules.DESIGN)
                         .inputPaths("src/test/resources/java/Design.java")
                         .cache(new File("build/pmd/design-cache"));
 
@@ -622,7 +703,7 @@ class PmdOperationTests {
             @Test
             void javaDocumentation() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets(DOCUMENTATION_XML)
+                        .ruleSets(JavaRules.DOCUMENTATION)
                         .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
@@ -631,7 +712,7 @@ class PmdOperationTests {
 
             @Test
             void javaErrorProne() throws ExitStatusException {
-                var pmd = newPmdOperation().ruleSets(ERROR_PRONE_XML).inputPaths(ERROR_PRONE_SAMPLE);
+                var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).inputPaths(ERROR_PRONE_SAMPLE);
 
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
@@ -660,10 +741,10 @@ class PmdOperationTests {
             @Test
             void javaQuickStart() throws ExitStatusException {
                 var pmd = newPmdOperation()
-                        .ruleSets(PmdOperation.RULE_SET_DEFAULT)
+                        .ruleSets(JavaRules.QUICK_START)
                         .inputPaths(new File("src/test/resources/java/"));
 
-                assertThat(pmd.ruleSets()).containsExactly(PmdOperation.RULE_SET_DEFAULT);
+                assertThat(pmd.ruleSets()).containsExactly(JavaRules.QUICK_START.getCategory());
                 assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
@@ -694,34 +775,51 @@ class PmdOperationTests {
                         .isEqualTo(1);
             }
 
-            @Nested
-            @DisplayName("Add RuleSets Tests")
-            class AddRuleSetsTests {
-                @Test
-                void addRuleSetsWithDefault() {
-                    var pmd = new PmdOperation().fromProject(new BaseProject());
+            @Test
+            void ruleSetsNoClear() {
+                var pmd = new PmdOperation().fromProject(new BaseProject());
+                pmd.ruleSets(false, JavaRules.BEST_PRACTICES, JavaRules.DESIGN);
 
-                    assertThat(pmd.ruleSets()).containsExactly(PmdOperation.RULE_SET_DEFAULT);
-                }
+                assertThat(pmd.ruleSets()).containsExactly(
+                        JavaRules.QUICK_START.getCategory(),
+                        JavaRules.BEST_PRACTICES.getCategory(),
+                        JavaRules.DESIGN.getCategory());
+            }
 
-                @Test
-                void addRuleSetsWithErrorProne() {
-                    var pmd = new PmdOperation().fromProject(new BaseProject());
+            @Test
+            void ruleSetsWithDefault() {
+                var pmd = new PmdOperation().fromProject(new BaseProject());
 
-                    pmd.addRuleSet(ERROR_PRONE_XML);
+                assertThat(pmd.ruleSets()).containsExactly(JavaRules.QUICK_START.getCategory());
+            }
 
-                    assertThat(pmd.ruleSets()).containsExactly(PmdOperation.RULE_SET_DEFAULT, ERROR_PRONE_XML);
-                }
+            @Test
+            void ruleSetsWithErrorProne() {
+                var pmd = new PmdOperation().fromProject(new BaseProject());
 
-                @Test
-                void addRuleSetsWithList() {
-                    var pmd = new PmdOperation().fromProject(new BaseProject());
-                    pmd.ruleSets().clear();
-                    pmd.addRuleSet(List.of(PmdOperation.RULE_SET_DEFAULT, ERROR_PRONE_XML));
+                pmd.ruleSets(JavaRules.ERROR_PRONE);
 
-                    assertThat(pmd.ruleSets()).as("rulesets as collection")
-                            .containsExactly(PmdOperation.RULE_SET_DEFAULT, ERROR_PRONE_XML);
-                }
+                assertThat(pmd.ruleSets()).containsExactly(JavaRules.ERROR_PRONE.getCategory());
+            }
+
+            @Test
+            void ruleSetsWithList() {
+                var pmd = new PmdOperation().fromProject(new BaseProject());
+                pmd.ruleSetsRules(List.of(JavaRules.QUICK_START, JavaRules.ERROR_PRONE));
+
+                assertThat(pmd.ruleSets()).as("rulesets as collection")
+                        .containsExactly(JavaRules.QUICK_START.getCategory(), JavaRules.ERROR_PRONE.getCategory());
+            }
+
+            @Test
+            void ruleSetsWithListNoClear() {
+                var pmd = new PmdOperation().fromProject(new BaseProject());
+                pmd.ruleSets(false, JavaRules.BEST_PRACTICES.getCategory(), JavaRules.DESIGN.getCategory());
+
+                assertThat(pmd.ruleSets()).containsExactly(
+                        JavaRules.QUICK_START.getCategory(),
+                        JavaRules.BEST_PRACTICES.getCategory(),
+                        JavaRules.DESIGN.getCategory());
             }
         }
     }
