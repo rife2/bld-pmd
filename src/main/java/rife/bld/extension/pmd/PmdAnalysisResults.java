@@ -17,14 +17,14 @@
 package rife.bld.extension.pmd;
 
 /**
- * Represents the results of a PMD analysis, containing various counts
- * related to violations, errors, and rules.
+ * Represents the aggregated results of a PMD analysis, including counts for
+ * violations, suppressed violations, errors, and rules checked.
  *
  * @param violations           The number of violations found during the analysis
  * @param suppressedViolations The number of suppressed violations found during the analysis
  * @param errors               The number of errors returned during the analysis
  * @param processingErrors     The number of processing errors returned during the analysis
- * @param configurationErrors  The number of processing errors returning during the analysis
+ * @param configurationErrors  The number of configuration errors returned during the analysis
  * @param rulesChecked         The number of rules checked during the analysis
  * @since 1.3.0
  */
@@ -37,7 +37,7 @@ public record PmdAnalysisResults(
         int rulesChecked) {
 
     /**
-     * Checks if the analysis results indicate no errors of any type.
+     * Checks whether the analysis returned no errors of any type.
      *
      * @return {@code true} if there are no errors, {@code false} otherwise
      */
@@ -46,7 +46,7 @@ public record PmdAnalysisResults(
     }
 
     /**
-     * Determines whether the analysis results indicate no violations of any type.
+     * Checks whether the analysis found no violations of any type.
      *
      * @return {@code true} if there are no violations, {@code false} otherwise
      */

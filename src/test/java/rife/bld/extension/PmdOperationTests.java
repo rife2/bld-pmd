@@ -41,8 +41,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * PmdOperation Tests
@@ -50,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @ExtendWith(LoggingExtension.class)
 class PmdOperationTests {
 
@@ -58,44 +56,42 @@ class PmdOperationTests {
     private static final String ANALYSIS_SUCCESS = "analysis should succeed";
     private static final String BAR = "bar";
     private static final String CATEGORY_FOO = "category/foo.xml";
-    private static final Path CODE_STYLE_SAMPLE = Path.of("src/test/resources/java/CodeStyle.java");
-    private static final String COMMAND_NAME = "pmd";
-    private static final Path ERROR_PRONE_SAMPLE = Path.of("src/test/resources/java/ErrorProne.java");
-    private static final File FILE_BAR = new File(BAR);
     private static final String FOO = "foo";
-    private static final File FILE_FOO = new File(FOO);
-
-    @RegisterExtension
-    @SuppressWarnings({"unused"})
-    private static final LoggingExtension LOGGING_EXTENSION = new LoggingExtension(PmdOperation.class.getName());
-
-    private static final Path PATH_BAR = Path.of(BAR);
-    private static final Path PATH_FOO = Path.of(FOO);
     private static final String PERFORMANCE_XML = "category/java/performance.xml";
     private static final String SECURITY_XML = "category/java/security.xml";
-    private static final String TEST = "test";
+    private static final Path codeStyleSample = Path.of("src/test/resources/java/CodeStyle.java");
+    private static final Path errorProneSample = Path.of("src/test/resources/java/ErrorProne.java");
+    private static final File fileBar = new File(BAR);
+    private static final File fileFoo = new File(FOO);
+    @RegisterExtension
+    @SuppressWarnings({"unused"})
+    private static final LoggingExtension loggingExtension = new LoggingExtension(PmdOperation.class.getName());
+    private static final Path pathBar = Path.of(BAR);
+    private static final Path pathFoo = Path.of(FOO);
 
     PmdOperation newPmdOperation() {
         return new PmdOperation()
-                .inputPaths(Path.of("src/main"), Path.of("src/test"))
-                .cache("build/" + COMMAND_NAME + "/pmd-cache")
+                .fromProject(new BaseProject())
+                .cache("build/pmd-cache")
                 .failOnViolation(false)
-                .reportFile(Paths.get("build", COMMAND_NAME, "pmd-test-report.txt"));
+                .reportFile(Paths.get("build", "pmd-test-report.txt"));
     }
 
     @Nested
     @DisplayName("Configuration Tests")
     class ConfigurationTests {
 
+        private static final Path bazPath = Path.of("baz/foz");
+
         @Test
         void cache() throws ExitStatusException {
             var cache = Path.of("build/pmd/temp-cache");
             var pmd = newPmdOperation()
                     .ruleSets(JavaRules.CODE_STYLE)
-                    .inputPaths(List.of(CODE_STYLE_SAMPLE))
+                    .inputPaths(List.of(codeStyleSample))
                     .cache(cache);
 
-            assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).rulesChecked())
+            assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).rulesChecked())
                     .isGreaterThan(0);
             var f = cache.toFile();
             assertThat(f.exists()).as("cache should exist").isTrue();
@@ -106,7 +102,7 @@ class PmdOperationTests {
         void collectFilesRecursively() {
             var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).collectFilesRecursively(false);
 
-            var config = pmd.initConfiguration(COMMAND_NAME);
+            var config = pmd.initConfiguration();
             assertThat(config.collectFilesRecursively()).isFalse();
         }
 
@@ -122,12 +118,12 @@ class PmdOperationTests {
 
             assertThat(pmd.defaultLanguageVersions()).as("should contain default language version")
                     .contains(language.getDefaultVersion());
-            assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).processingErrors())
+            assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).processingErrors())
                     .as("should have processing errors").isGreaterThan(0);
 
             assertThat(pmd.defaultLanguageVersions(language.getVersion("17"), language.getVersion("21"))
                     .excludesStrings("src/test/resources/txt", "src/test/resources/xml")
-                    .performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).configurationErrors())
+                    .performPmdAnalysis(pmd.initConfiguration()).configurationErrors())
                     .as("should have no processing errors").isEqualTo(0);
         }
 
@@ -135,12 +131,12 @@ class PmdOperationTests {
         void encoding() {
             var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).encoding("UTF-16");
 
-            var config = pmd.initConfiguration(COMMAND_NAME);
+            var config = pmd.initConfiguration();
             assertThat(config.getSourceEncoding()).as("encoding should be UTF-16")
                     .isEqualTo(StandardCharsets.UTF_16);
 
             pmd = pmd.encoding(StandardCharsets.ISO_8859_1);
-            config = pmd.initConfiguration(COMMAND_NAME);
+            config = pmd.initConfiguration();
             assertThat(config.getSourceEncoding()).as("encoding should be ISO_8859")
                     .isEqualTo(StandardCharsets.ISO_8859_1);
         }
@@ -149,7 +145,7 @@ class PmdOperationTests {
         void incrementalAnalysis() {
             var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).incrementalAnalysis(true);
 
-            var config = pmd.initConfiguration(COMMAND_NAME);
+            var config = pmd.initConfiguration();
             assertThat(config.isIgnoreIncrementalAnalysis()).isFalse();
         }
 
@@ -161,56 +157,93 @@ class PmdOperationTests {
 
         @Test
         void priority() throws ExitStatusException {
-            var pmd = newPmdOperation().inputPaths(CODE_STYLE_SAMPLE).minimumPriority(RulePriority.HIGH);
-            assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).rulesChecked())
-                    .as(ANALYSIS_SUCCESS).isEqualTo(0);
+            var pmd = newPmdOperation().inputPaths(codeStyleSample).minimumPriority(RulePriority.MEDIUM);
+            var cfg = pmd.initConfiguration();
+
+            var medium = pmd.performPmdAnalysis(cfg).rulesChecked();
+            pmd.minimumPriority(RulePriority.LOW);
+            cfg = pmd.initConfiguration();
+            var low = pmd.performPmdAnalysis(cfg).rulesChecked();
+
+            assertThat(low).isNotEqualTo(medium);
         }
 
         @Test
         void relativizeRoots() {
-            var baz = Path.of("baz/foz");
-
             var pmd = newPmdOperation()
                     .ruleSets(List.of(CATEGORY_FOO))
-                    .relativizeRoots(PATH_FOO)
-                    .relativizeRoots(PATH_BAR.toFile()).relativizeRoots(baz.toString())
-                    .relativizeRoots(List.of(PATH_FOO, PATH_BAR, baz));
+                    .relativizeRoots(pathFoo, pathBar, bazPath);
 
-            var config = pmd.initConfiguration(COMMAND_NAME);
+            var config = pmd.initConfiguration();
             assertThat(config.getRelativizeRoots()).as("multiple roots").isEqualTo(pmd.relativizeRoots())
-                    .containsExactly(PATH_FOO, PATH_BAR, baz, PATH_FOO, PATH_BAR, baz);
+                    .containsExactly(pathFoo, pathBar, bazPath);
+        }
 
-            pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
-                    .relativizeRootsFiles(List.of(PATH_FOO.toFile(), PATH_BAR.toFile(), baz.toFile()));
-            config = pmd.initConfiguration(COMMAND_NAME);
+        @Test
+        void relativizeRootsAsFileArray() {
+            var pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
+                    .relativizeRoots(pathFoo.toFile(), pathBar.toFile(), bazPath.toFile());
+            var config = pmd.initConfiguration();
             assertThat(config.getRelativizeRoots()).as("List(File...)").isEqualTo(pmd.relativizeRoots())
-                    .containsExactly(PATH_FOO, PATH_BAR, baz);
+                    .containsExactly(pathFoo, pathBar, bazPath);
+        }
 
-            pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
-                    .relativizeRootsStrings(List.of(PATH_FOO.toString(), PATH_BAR.toString(), baz.toString()));
-            config = pmd.initConfiguration(COMMAND_NAME);
+        @Test
+        void relativizeRootsAsFileList() {
+            var pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
+                    .relativizeRootsFiles(List.of(pathFoo.toFile(), pathBar.toFile(), bazPath.toFile()));
+            var config = pmd.initConfiguration();
+            assertThat(config.getRelativizeRoots()).as("List(File...)").isEqualTo(pmd.relativizeRoots())
+                    .containsExactly(pathFoo, pathBar, bazPath);
+        }
+
+        @Test
+        void relativizeRootsAsPathList() {
+            var pmd = newPmdOperation()
+                    .ruleSets(List.of(CATEGORY_FOO))
+                    .relativizeRoots(List.of(pathFoo, pathBar, bazPath));
+
+            var config = pmd.initConfiguration();
+            assertThat(config.getRelativizeRoots()).as("multiple roots").isEqualTo(pmd.relativizeRoots())
+                    .containsExactly(pathFoo, pathBar, bazPath);
+        }
+
+        @Test
+        void relativizeRootsAsStringArray() {
+            var pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
+                    .relativizeRoots(pathFoo.toString(), pathBar.toString(), bazPath.toString());
+            var config = pmd.initConfiguration();
             assertThat(config.getRelativizeRoots()).as("List(String....)").isEqualTo(pmd.relativizeRoots())
-                    .containsExactly(PATH_FOO, PATH_BAR, baz);
+                    .containsExactly(pathFoo, pathBar, bazPath);
+        }
+
+        @Test
+        void relativizeRootsAsStringList() {
+            var pmd = newPmdOperation().ruleSets(List.of(CATEGORY_FOO))
+                    .relativizeRootsStrings(List.of(pathFoo.toString(), pathBar.toString(), bazPath.toString()));
+            var config = pmd.initConfiguration();
+            assertThat(config.getRelativizeRoots()).as("List(String....)").isEqualTo(pmd.relativizeRoots())
+                    .containsExactly(pathFoo, pathBar, bazPath);
         }
 
         @Test
         void showSuppressed() {
             var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).showSuppressed(true);
-            var config = pmd.initConfiguration(COMMAND_NAME);
+            var config = pmd.initConfiguration();
             assertThat(config.isShowSuppressedViolations()).isTrue();
         }
 
         @Test
         void suppressedMarker() {
-            var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).suppressedMarker(TEST);
-            var config = pmd.initConfiguration(COMMAND_NAME);
-            assertThat(config.getSuppressMarker()).isEqualTo(TEST);
+            var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).suppressedMarker(FOO);
+            var config = pmd.initConfiguration();
+            assertThat(config.getSuppressMarker()).isEqualTo(FOO);
         }
 
         @Test
         void threads() {
             var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).threads(5);
-            var config = pmd.initConfiguration(COMMAND_NAME);
+            var config = pmd.initConfiguration();
             assertThat(config.getThreads()).isEqualTo(5);
         }
 
@@ -218,7 +251,7 @@ class PmdOperationTests {
         void uri() throws URISyntaxException {
             var uri = new URI("https://example.com");
             var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).uri(uri);
-            var config = pmd.initConfiguration(COMMAND_NAME);
+            var config = pmd.initConfiguration();
             assertThat(config.getUri()).isEqualTo(uri);
         }
 
@@ -231,15 +264,15 @@ class PmdOperationTests {
                 var foz = Path.of("foz/baz");
                 var baz = Path.of("baz/foz");
 
-                var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludes(PATH_FOO, PATH_BAR);
-                var config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(pmd.excludes()).containsExactly(List.of(PATH_FOO, PATH_BAR).toArray(new Path[0]));
-                assertThat(config.getExcludes()).containsExactly(List.of(PATH_FOO, PATH_BAR).toArray(new Path[0]));
+                var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludes(pathFoo, pathBar);
+                var config = pmd.initConfiguration();
+                assertThat(pmd.excludes()).containsExactly(List.of(pathFoo, pathBar).toArray(new Path[0]));
+                assertThat(config.getExcludes()).containsExactly(List.of(pathFoo, pathBar).toArray(new Path[0]));
 
-                var excludes = List.of(List.of(PATH_FOO, PATH_BAR), List.of(foz, baz));
+                var excludes = List.of(List.of(pathFoo, pathBar), List.of(foz, baz));
                 for (var exclude : excludes) {
                     pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludes(exclude);
-                    config = pmd.initConfiguration(COMMAND_NAME);
+                    config = pmd.initConfiguration();
                     assertThat(config.getExcludes()).containsExactly(exclude.toArray(new Path[0]));
                 }
             }
@@ -249,27 +282,17 @@ class PmdOperationTests {
                 var foz = new File("foz");
                 var baz = new File("baz");
 
-                var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesFiles(FILE_FOO, FILE_BAR);
-                var config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(config.getExcludes()).containsExactly(FILE_FOO.toPath(), FILE_BAR.toPath());
+                var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesFiles(fileFoo, fileBar);
+                var config = pmd.initConfiguration();
+                assertThat(config.getExcludes()).containsExactly(fileFoo.toPath(), fileBar.toPath());
 
-                var excludes = List.of(List.of(FILE_FOO, FILE_BAR), List.of(foz, baz));
+                var excludes = List.of(List.of(fileFoo, fileBar), List.of(foz, baz));
                 for (var exclude : excludes) {
                     pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesFiles(exclude);
-                    config = pmd.initConfiguration(COMMAND_NAME);
+                    config = pmd.initConfiguration();
                     assertThat(config.getExcludes())
                             .containsExactly(exclude.stream().map(File::toPath).toArray(Path[]::new));
                 }
-            }
-
-            @Test
-            void excludesNoClear() {
-                var baz = Path.of("baz");
-                var pmd = newPmdOperation()
-                        .excludes(PATH_FOO)
-                        .excludes(false, PATH_BAR, baz);
-
-                assertThat(pmd.excludes()).containsExactly(PATH_FOO, PATH_BAR, baz);
             }
 
             @Test
@@ -278,26 +301,17 @@ class PmdOperationTests {
                 var baz = "baz";
 
                 var pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesStrings(FOO, BAR);
-                var config = pmd.initConfiguration(COMMAND_NAME);
-                assertThat(pmd.excludes()).containsExactly(PATH_FOO, PATH_BAR);
-                assertThat(config.getExcludes()).containsExactly(PATH_FOO, PATH_BAR);
+                var config = pmd.initConfiguration();
+                assertThat(pmd.excludes()).containsExactly(pathFoo, pathBar);
+                assertThat(config.getExcludes()).containsExactly(pathFoo, pathBar);
 
                 var excludes = List.of(List.of(FOO, BAR), List.of(foz, baz));
                 for (var exclude : excludes) {
                     pmd = newPmdOperation().ruleSets(CATEGORY_FOO).excludesStrings(exclude);
-                    config = pmd.initConfiguration(COMMAND_NAME);
+                    config = pmd.initConfiguration();
                     assertThat(config.getExcludes())
                             .containsExactly(exclude.stream().map(Paths::get).toArray(Path[]::new));
                 }
-            }
-
-            @Test
-            void excludesStringsNoClear() {
-                var pmd = new PmdOperation()
-                        .excludesStrings(FOO)
-                        .excludesStrings(false, BAR, "baz");
-
-                assertThat(pmd.excludes()).containsExactly(PATH_FOO, PATH_BAR, Path.of("baz"));
             }
         }
 
@@ -309,20 +323,20 @@ class PmdOperationTests {
             void failOnError() {
                 var pmd = newPmdOperation().ruleSets("src/test/resources/xml/old.xml")
                         .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
-                assertThatCode(() -> pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)))
+                assertThatCode(() -> pmd.performPmdAnalysis(pmd.initConfiguration()))
                         .isInstanceOf(ExitStatusException.class);
-                assertThatCode(() -> pmd.failOnError(false).performPmdAnalysis(TEST,
-                        pmd.initConfiguration(COMMAND_NAME))).doesNotThrowAnyException();
+                assertThatCode(() -> pmd.failOnError(false).performPmdAnalysis(
+                        pmd.initConfiguration())).doesNotThrowAnyException();
             }
 
             @Test
             void failOnValidation() {
                 var pmd = newPmdOperation().ruleSets(JavaRules.DOCUMENTATION)
                         .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
-                assertThatCode(() -> pmd.failOnViolation(true).performPmdAnalysis(TEST,
-                        pmd.initConfiguration(COMMAND_NAME))).isInstanceOf(ExitStatusException.class);
-                assertThatCode(() -> pmd.failOnViolation(false).performPmdAnalysis(TEST,
-                        pmd.initConfiguration(COMMAND_NAME))).doesNotThrowAnyException();
+                assertThatCode(() -> pmd.failOnViolation(true).performPmdAnalysis(
+                        pmd.initConfiguration())).isInstanceOf(ExitStatusException.class);
+                assertThatCode(() -> pmd.failOnViolation(false).performPmdAnalysis(
+                        pmd.initConfiguration())).doesNotThrowAnyException();
             }
         }
 
@@ -332,12 +346,12 @@ class PmdOperationTests {
 
             @Test
             void ignoreFile() throws ExitStatusException {
-                var pmd = newPmdOperation()
-                        .ruleSets(JavaRules.ERROR_PRONE, JavaRules.CODE_STYLE)
+                var pmd = newPmdOperation();
+                pmd.ruleSets(JavaRules.ERROR_PRONE, JavaRules.CODE_STYLE)
                         .ignoreFile(Path.of("src/test/resources/txt/ignore.txt"));
-                pmd.inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+                pmd.inputPaths(errorProneSample, codeStyleSample);
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as("%s for error prone and code style", ANALYSIS_SUCCESS).isEqualTo(0);
             }
 
@@ -346,9 +360,9 @@ class PmdOperationTests {
                 var pmd = newPmdOperation()
                         .ruleSets(JavaRules.ERROR_PRONE)
                         .ignoreFile(new File("src/test/resources/txt/ignore-single.txt"));
-                pmd.inputPaths(ERROR_PRONE_SAMPLE);
+                pmd.inputPaths(errorProneSample);
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as("%s for error prone sample", ANALYSIS_SUCCESS).isEqualTo(0);
             }
         }
@@ -363,10 +377,10 @@ class PmdOperationTests {
             void inputPathsAsArray() throws ExitStatusException {
                 var pmd = newPmdOperation()
                         .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
+                pmd.inputPaths(errorProneSample, codeStyleSample);
 
-                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.inputPaths()).containsExactly(errorProneSample, codeStyleSample);
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
@@ -374,29 +388,16 @@ class PmdOperationTests {
             void inputPathsAsFileArray() throws ExitStatusException {
                 var pmd = newPmdOperation()
                         .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd.inputPaths(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile());
+                pmd.inputPaths(errorProneSample.toFile(), codeStyleSample.toFile());
 
-                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.inputPaths()).containsExactly(errorProneSample, codeStyleSample);
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
-            }
-
-            @Test
-            void inputPathsAsFileArrayNoClear() {
-                var pmd = newPmdOperation()
-                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd.inputPaths(false, ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile());
-
-                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
-                        ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
             }
 
             @Test
             void inputPathsAsFileList() {
                 var pmd = new PmdOperation().fromProject(project);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
                 pmd.inputPathsFiles(List.of(project.srcMainDirectory(), project.srcTestDirectory()));
 
                 assertThat(pmd.inputPaths()).as("List(File...)")
@@ -404,42 +405,19 @@ class PmdOperationTests {
             }
 
             @Test
-            void inputPathsAsFileListNoClear() {
-                var pmd = new PmdOperation().fromProject(project);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd.inputPathsFiles(false, List.of(project.srcMainDirectory(), project.srcTestDirectory()));
-
-                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
-                        project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-            }
-
-            @Test
             void inputPathsAsList() throws ExitStatusException {
                 var pmd = newPmdOperation()
                         .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd = pmd.inputPathsFiles(List.of(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile()));
+                pmd.inputPathsFiles(List.of(errorProneSample.toFile(), codeStyleSample.toFile()));
 
-                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.inputPaths()).containsExactly(errorProneSample, codeStyleSample);
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
-            }
-
-            @Test
-            void inputPathsAsListNoClear() {
-                var pmd = newPmdOperation()
-                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd.inputPathsFiles(false, List.of(ERROR_PRONE_SAMPLE.toFile(), CODE_STYLE_SAMPLE.toFile()));
-
-                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
-                        ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
             }
 
             @Test
             void inputPathsAsPathArray() {
                 var pmd = new PmdOperation().fromProject(project);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
                 pmd = pmd.inputPaths(project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
 
                 assertThat(pmd.inputPaths()).as("Path...")
@@ -447,22 +425,8 @@ class PmdOperationTests {
             }
 
             @Test
-            void inputPathsAsPathArrayNoClear() {
-                var pmd = new PmdOperation().fromProject(project);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd = pmd.inputPaths(false, project.srcMainDirectory().toPath(),
-                        project.srcTestDirectory().toPath());
-
-                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
-                        project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-            }
-
-            @Test
             void inputPathsAsPathList() {
                 var pmd = new PmdOperation().fromProject(project);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                assertThat(pmd.inputPaths()).containsExactly(FILE_FOO.toPath(), FILE_BAR.toPath());
-
                 pmd.inputPaths(List.of(project.srcMainDirectory().toPath(),
                         project.srcTestDirectory().toPath()));
                 assertThat(pmd.inputPaths()).as("List(Path)")
@@ -471,98 +435,43 @@ class PmdOperationTests {
 
 
             @Test
-            void inputPathsAsPathListNoClear() {
-                var pmd = new PmdOperation().fromProject(project);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd.inputPaths(false, List.of(project.srcMainDirectory().toPath(),
-                        project.srcTestDirectory().toPath()));
-
-                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
-                        project.srcMainDirectory().toPath(), project.srcTestDirectory().toPath());
-            }
-
-            @Test
             void inputPathsAsStringArray() throws ExitStatusException {
                 var pmd = newPmdOperation()
                         .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd.inputPaths(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString());
+                pmd.inputPaths(errorProneSample.toString(), codeStyleSample.toString());
 
-                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.inputPaths()).containsExactly(errorProneSample, codeStyleSample);
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
-            }
-
-            @Test
-            void inputPathsAsStringArrayNoClear() {
-                var pmd = newPmdOperation()
-                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                pmd.inputPaths(false, ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString());
-
-                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, PATH_BAR,
-                        ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-
             }
 
             @Test
             void inputPathsAsStringList() throws ExitStatusException {
-                var pmd = newPmdOperation()
-                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths(FILE_FOO, FILE_BAR);
-                assertThat(pmd.inputPaths()).containsExactly(FILE_FOO.toPath(), FILE_BAR.toPath());
-
-                pmd = pmd.inputPathsStrings(List.of(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString()));
-
-                assertThat(pmd.inputPaths()).containsExactly(ERROR_PRONE_SAMPLE, CODE_STYLE_SAMPLE);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                var pmd = newPmdOperation().ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
+                pmd = pmd.inputPathsStrings(List.of(errorProneSample.toString(), codeStyleSample.toString()));
+                assertThat(pmd.inputPaths()).containsExactly(errorProneSample, codeStyleSample);
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
             @Test
-            void inputPathsAsStringListNoClear() {
-                var pmd = newPmdOperation()
-                        .ruleSets(JavaRules.QUICK_START, JavaRules.CODE_STYLE);
-                pmd.inputPaths("foo");
-                pmd.inputPathsStrings(false, List.of(ERROR_PRONE_SAMPLE.toString(), CODE_STYLE_SAMPLE.toString()));
-
-                assertThat(pmd.inputPaths()).containsExactly(PATH_FOO, ERROR_PRONE_SAMPLE,
-                        CODE_STYLE_SAMPLE);
-            }
-
-            @Test
             void inputPathsAsXml() throws ExitStatusException {
-                var pmd = newPmdOperation()
-                        .inputPaths("foo.xml")
-                        .inputPaths("src/test/resources/xml/pmd.xml")
+                var pmd = newPmdOperation();
+                pmd.inputPaths("src/test/resources/xml/pmd.xml")
                         .ruleSets("src/test/resources/xml/basic.xml");
 
                 assertThat(pmd.inputPaths()).containsExactly(Path.of("src/test/resources/xml/pmd.xml"));
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).configurationErrors())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).configurationErrors())
                         .isEqualTo(0);
             }
 
             @Test
-            void inputPathsAsXmlNoClear() {
-                var pmd = newPmdOperation()
-                        .inputPaths("src/test/resources/xml/pmd.xml")
-                        .inputPaths(false, "src/test/resources/xml/basic.xml")
-                        .ruleSets("src/test/resources/xml/basic.xml");
-
-                assertThat(pmd.inputPaths()).containsExactly(
-                        Path.of("src/test/resources/xml/pmd.xml"),
-                        Path.of("src/test/resources/xml/basic.xml"));
-            }
-
-            @Test
             void inputPathsMainOperation() throws ExitStatusException {
-                var pmd = newPmdOperation()
-                        .inputPaths(new File("src/main"))
-                        .performPmdAnalysis(TEST, newPmdOperation().initConfiguration(COMMAND_NAME))
-                        .violations();
+                var pmd = newPmdOperation().inputPaths(new File("src/main"));
+                var cfg = pmd.initConfiguration();
 
-                assertThat(pmd).as(ANALYSIS_SUCCESS).isEqualTo(0);
+                assertThat(pmd.performPmdAnalysis(cfg).violations()).as(ANALYSIS_SUCCESS).isEqualTo(0);
             }
 
             @Test
@@ -586,7 +495,7 @@ class PmdOperationTests {
                         .ruleSetsRules(List.of(JavaRules.ERROR_PRONE, JavaRules.DESIGN))
                         .reportFile(report);
 
-                pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME));
+                pmd.performPmdAnalysis(pmd.initConfiguration());
                 assertThat(report).as("report should exist").exists();
 
                 try (var writer = new PrintWriter(report)) {
@@ -594,7 +503,7 @@ class PmdOperationTests {
                 }
                 assertThat(report).as("report should not be empty").isEmpty();
 
-                pmd.reportFile(report.getAbsolutePath()).performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME));
+                pmd.reportFile(report.getAbsolutePath()).performPmdAnalysis(pmd.initConfiguration());
                 assertThat(report).as("report should not be empty").isNotEmpty();
             }
 
@@ -603,9 +512,9 @@ class PmdOperationTests {
                 var pmd = newPmdOperation()
                         .ruleSets(JavaRules.ERROR_PRONE)
                         .reportFormat("xml")
-                        .inputPaths(ERROR_PRONE_SAMPLE);
+                        .inputPaths(errorProneSample);
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
                 try (var br = Files.newBufferedReader(pmd.reportFile())) {
                     assertThat(br.readLine()).as("XML report for %s", pmd.reportFile().toString())
@@ -615,12 +524,23 @@ class PmdOperationTests {
 
             @Test
             void reportProperties() throws ExitStatusException {
+                var p = new Properties();
+                p.setProperty(FOO, BAR);
                 var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE, JavaRules.ERROR_PRONE)
                         .includeLineNumber(true)
-                        .reportProperties(new Properties());
+                        .reportProperties(p);
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).processingErrors())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).processingErrors())
                         .isEqualTo(0);
+            }
+
+            @Test
+            void reportPropertiesIsNull() {
+                var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE, JavaRules.ERROR_PRONE)
+                        .includeLineNumber(true);
+
+                //noinspection DataFlowIssue
+                assertThatThrownBy(() -> pmd.reportProperties(null)).isInstanceOf(NullPointerException.class);
             }
         }
 
@@ -634,27 +554,27 @@ class PmdOperationTests {
                         .ruleSets(JavaRules.BEST_PRACTICES)
                         .inputPaths(Path.of("src/test/resources/java/BestPractices.java"));
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
             @Test
             void javaCodeStyle() throws ExitStatusException {
-                var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE).inputPaths(CODE_STYLE_SAMPLE);
+                var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE).inputPaths(codeStyleSample);
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
             @Test
             void javaCodeStyleAndErrorProne() throws ExitStatusException {
-                var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE).inputPaths(CODE_STYLE_SAMPLE);
+                var pmd = newPmdOperation().ruleSets(JavaRules.CODE_STYLE).inputPaths(codeStyleSample);
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as("analysis with code style").isGreaterThan(0);
 
-                pmd = pmd.ruleSets(JavaRules.ERROR_PRONE).inputPaths(ERROR_PRONE_SAMPLE);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                pmd = pmd.ruleSets(JavaRules.ERROR_PRONE).inputPaths(errorProneSample);
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as("analysis with code style and error prone").isGreaterThan(0);
             }
 
@@ -665,9 +585,9 @@ class PmdOperationTests {
                         .inputPaths("src/test/resources/java/Design.java")
                         .cache(new File("build/pmd/design-cache"));
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).configurationErrors())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).configurationErrors())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
@@ -677,15 +597,15 @@ class PmdOperationTests {
                         .ruleSets(JavaRules.DOCUMENTATION)
                         .inputPaths(Path.of("src/test/resources/java/Documentation.java"));
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
             @Test
             void javaErrorProne() throws ExitStatusException {
-                var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).inputPaths(ERROR_PRONE_SAMPLE);
+                var pmd = newPmdOperation().ruleSets(JavaRules.ERROR_PRONE).inputPaths(errorProneSample);
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
@@ -695,7 +615,7 @@ class PmdOperationTests {
                         .ruleSets("category/java/multithreading.xml")
                         .inputPaths(Path.of("src/test/resources/java/MultiThreading.java"));
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
@@ -705,7 +625,7 @@ class PmdOperationTests {
                         .ruleSets(PERFORMANCE_XML)
                         .inputPaths(Path.of("src/test/resources/java/Performance.java"));
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
@@ -716,7 +636,7 @@ class PmdOperationTests {
                         .inputPaths(new File("src/test/resources/java/"));
 
                 assertThat(pmd.ruleSets()).containsExactly(JavaRules.QUICK_START.getCategory());
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
@@ -726,7 +646,7 @@ class PmdOperationTests {
                         .ruleSets(SECURITY_XML)
                         .inputPaths(Path.of("src/test/resources/java/Security.java"));
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                         .as(ANALYSIS_FAILURE).isGreaterThan(0);
             }
 
@@ -736,25 +656,14 @@ class PmdOperationTests {
                         .ruleSets("src/test/resources/xml/pmd.xml")
                         .ignoreFile("src/test/resources/txt/ignore-all.txt");
 
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).hasNoErrors()).isTrue();
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).hasNoErrors()).isTrue();
             }
 
             @Test
             void ruleSetsEmpty() throws ExitStatusException {
                 var pmd = newPmdOperation().ruleSets("").failOnError(false);
-                assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).errors())
+                assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).errors())
                         .isEqualTo(1);
-            }
-
-            @Test
-            void ruleSetsNoClear() {
-                var pmd = new PmdOperation().fromProject(new BaseProject());
-                pmd.ruleSets(false, JavaRules.BEST_PRACTICES, JavaRules.DESIGN);
-
-                assertThat(pmd.ruleSets()).containsExactly(
-                        JavaRules.QUICK_START.getCategory(),
-                        JavaRules.BEST_PRACTICES.getCategory(),
-                        JavaRules.DESIGN.getCategory());
             }
 
             @Test
@@ -767,7 +676,6 @@ class PmdOperationTests {
             @Test
             void ruleSetsWithErrorProne() {
                 var pmd = new PmdOperation().fromProject(new BaseProject());
-
                 pmd.ruleSets(JavaRules.ERROR_PRONE);
 
                 assertThat(pmd.ruleSets()).containsExactly(JavaRules.ERROR_PRONE.getCategory());
@@ -780,17 +688,6 @@ class PmdOperationTests {
 
                 assertThat(pmd.ruleSets()).as("rulesets as collection")
                         .containsExactly(JavaRules.QUICK_START.getCategory(), JavaRules.ERROR_PRONE.getCategory());
-            }
-
-            @Test
-            void ruleSetsWithListNoClear() {
-                var pmd = new PmdOperation().fromProject(new BaseProject());
-                pmd.ruleSets(false, JavaRules.BEST_PRACTICES.getCategory(), JavaRules.DESIGN.getCategory());
-
-                assertThat(pmd.ruleSets()).containsExactly(
-                        JavaRules.QUICK_START.getCategory(),
-                        JavaRules.BEST_PRACTICES.getCategory(),
-                        JavaRules.DESIGN.getCategory());
             }
         }
     }
@@ -805,7 +702,7 @@ class PmdOperationTests {
             pmd.inputPaths("src/main/java", "src/test/java").ruleSets("config/pmd.xml");
 
             assertThat(pmd.ruleSets()).containsExactly("config/pmd.xml");
-            assertThat(pmd.performPmdAnalysis(TEST, pmd.initConfiguration(COMMAND_NAME)).violations())
+            assertThat(pmd.performPmdAnalysis(pmd.initConfiguration()).violations())
                     .as(ANALYSIS_SUCCESS).isEqualTo(0);
         }
 

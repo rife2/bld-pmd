@@ -47,20 +47,22 @@ public class PmdOperationBuild extends Project {
         var junit = version(6, 0, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(0, 9, 1, "SNAPSHOT")))
+                        version(1, 2, 0)))
                 .include(dependency("com.uwyn.rife2", "bld",
                         version(2, 3, 1, "SNAPSHOT")))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(provided)
                 .include(dependency("com.github.spotbugs", "spotbugs-annotations",
-                        version(4, 9, 8)));
+                        version(4, 9, 8)))
+                .include(dependency("org.jetbrains", "annotations",
+                        version(26, 1, 0)));
         scope(runtime)
                 .include(dependency(
                         "org.slf4j", "slf4j-simple",
                         version(2, 0, 17)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
-                        version(0, 9, 6)))
+                        version(1, 0, 0)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", junit))
                 .include(dependency("org.assertj", "assertj-core",
@@ -72,7 +74,9 @@ public class PmdOperationBuild extends Project {
                 .docLint(NO_MISSING)
                 .link("https://rife2.github.io/bld/")
                 .link("https://rife2.github.io/rife2/")
-                .link("https://javadoc.io/doc/net.sourceforge.pmd/pmd-core/latest/");
+                .link("https://javadoc.io/doc/net.sourceforge.pmd/pmd-core/latest/")
+                .link("https://findbugs.sourceforge.net/api/");
+
 
         publishOperation()
                 .repository(version.isSnapshot() ? repository("rife2-snapshot") : repository("rife2"))

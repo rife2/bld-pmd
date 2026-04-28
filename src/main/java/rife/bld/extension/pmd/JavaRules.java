@@ -17,7 +17,7 @@
 package rife.bld.extension.pmd;
 
 /**
- * All built-in rules available for Java.
+ * Enumerates all built‑in PMD rule categories available for Java.
  *
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.5.0
@@ -52,7 +52,7 @@ public enum JavaRules {
      */
     PERFORMANCE("category/java/performance.xml"),
     /**
-     * Quick Start (Default RuleSet)
+     * Quick Start (Default Ruleset)
      */
     QUICK_START("rulesets/java/quickstart.xml"),
     /**
@@ -66,6 +66,9 @@ public enum JavaRules {
         this.category = category;
     }
 
+    /**
+     * Returns the PMD category path for this rule.
+     */
     public String getCategory() {
         return category;
     }
