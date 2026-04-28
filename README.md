@@ -17,7 +17,7 @@ For more information, please refer to the [extensions](https://github.com/rife2/
 
 ## Check Source with PMD
 
-To check all source  Codecode using the [Java Quickstart](https://docs.pmd-code.org/latest/pmd_rules_java.html) configuration, add the following to your build file:
+To check all source code using the [Java Quickstart](https://docs.pmd-code.org/latest/pmd_rules_java.html) configuration, add the following to your build file:
 
 ```java
 @BuildCommand(summary = "Checks source code with PMD")
