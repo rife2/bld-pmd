@@ -17,7 +17,7 @@ For more information, please refer to the [extensions](https://github.com/rife2/
 
 ## Check Source with PMD
 
-To check all source code using the [Java Quickstart](https://docs.pmd-code.org/latest/pmd_rules_java.html) configuration, add the following to your build file:
+To check the project's source code using the default [Java Quickstart](https://docs.pmd-code.org/latest/pmd_rules_java.html) configuration, add the following to your build file:
 
 ```java
 @BuildCommand(summary = "Checks source code with PMD")
@@ -26,6 +26,7 @@ public void pmd() throws Exception {
         .fromProject(this)
         .execute();
 }
+
 ```
 
 ```console
@@ -38,10 +39,10 @@ To check the main source directory using a custom ruleset, [Java Error Prone](ht
 @BuildCommand(value = "pmd-main", summary = "Checks main source code with PMD")
 public void pmdMain() throws Exception {
     new PmdOperation()
-            .fromProject(this)
             .failOnViolation(true)
             .inputPaths(srcMainDirectory())
             .ruleSets("config/pmd.xml", "category/java/errorprone.xml")
+            .fromProject(new BaseProject())
             .execute();
 }
 ```
