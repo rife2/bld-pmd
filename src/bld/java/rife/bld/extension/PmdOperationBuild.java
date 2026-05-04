@@ -34,7 +34,7 @@ public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(1, 6, 0);
+        version = version(1, 6, 5, "SNAPSHOT");
 
         javaRelease = 17;
 
@@ -62,7 +62,7 @@ public class PmdOperationBuild extends Project {
                         version(2, 0, 17)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
-                        version(1, 0, 0)))
+                        version(1, 0, 1)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", junit))
                 .include(dependency("org.assertj", "assertj-core",
