@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.*;
  * @since 1.0
  */
 @ExtendWith(LoggingExtension.class)
-class PmdOperationTests {
+class PmdOperationTest {
 
     private static final String ANALYSIS_FAILURE = "analysis should fail";
     private static final String ANALYSIS_SUCCESS = "analysis should succeed";
@@ -136,7 +136,7 @@ class PmdOperationTests {
             var pmd = newPmdOperation()
                     .ruleSets(CATEGORY_FOO)
                     .fromProject(new BaseProject())
-                    .encoding("UTF-16");
+                    .encoding(StandardCharsets.UTF_16);
 
             var config = pmd.initConfiguration();
             assertThat(config.getSourceEncoding()).as("encoding should be UTF-16")
