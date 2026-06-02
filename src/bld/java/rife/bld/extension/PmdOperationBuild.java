@@ -62,7 +62,7 @@ public class PmdOperationBuild extends Project {
                         version(2, 0, 18)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
-                        version(1, 0, 1)))
+                        version(1, 1, 0, "SNAPSHOT")))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", junit))
                 .include(dependency("org.assertj", "assertj-core",
@@ -76,7 +76,6 @@ public class PmdOperationBuild extends Project {
                 .link("https://rife2.github.io/rife2/")
                 .link("https://javadoc.io/doc/net.sourceforge.pmd/pmd-core/latest/")
                 .link("https://findbugs.sourceforge.net/api/");
-
 
         publishOperation()
                 .repository(version.isSnapshot() ? repository("rife2-snapshot") : repository("rife2"))

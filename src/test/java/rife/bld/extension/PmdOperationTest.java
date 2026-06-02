@@ -17,12 +17,15 @@
 package rife.bld.extension;
 
 import net.sourceforge.pmd.lang.LanguageRegistry;
+import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.rule.RulePriority;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
 import rife.bld.BaseProject;
 import rife.bld.extension.pmd.JavaRules;
 import rife.bld.extension.testing.LoggingExtension;
@@ -34,10 +37,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -50,6 +55,7 @@ import static org.assertj.core.api.Assertions.*;
  * @since 1.0
  */
 @ExtendWith(LoggingExtension.class)
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class PmdOperationTest {
 
     private static final String ANALYSIS_FAILURE = "analysis should fail";
@@ -146,6 +152,11 @@ class PmdOperationTest {
             config = pmd.initConfiguration();
             assertThat(config.getSourceEncoding()).as("encoding should be ISO_8859")
                     .isEqualTo(StandardCharsets.ISO_8859_1);
+
+            pmd = pmd.encoding("ASCII");
+            config = pmd.initConfiguration();
+            assertThat(config.getSourceEncoding()).as("encoding should be ASCII")
+                    .isEqualTo(StandardCharsets.US_ASCII);
         }
 
         @Test
@@ -819,6 +830,393 @@ class PmdOperationTest {
     }
 
     @Nested
+    @DisplayName("Validation Tests")
+    @SuppressWarnings("DataFlowIssue")
+    class ValidationTests {
+
+        @ParameterizedTest
+        @EmptySource
+        void cacheWithEmpty(String arg) {
+            assertThatThrownBy(() -> new PmdOperation().cache(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void cacheWithNullFile() {
+            assertThatThrownBy(() -> new PmdOperation().cache((File) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void cacheWithNullPath() {
+            assertThatThrownBy(() -> new PmdOperation().cache((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void cacheWithNullString() {
+            assertThatThrownBy(() -> new PmdOperation().cache((String) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void defaultLanguageVersionsWithEmptyArray() {
+            assertThatThrownBy(() -> new PmdOperation().defaultLanguageVersions(new LanguageVersion[0]))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void defaultLanguageVersionsWithEmptyCollection() {
+            assertThatThrownBy(() -> new PmdOperation().defaultLanguageVersions(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void defaultLanguageVersionsWithNullArray() {
+            assertThatThrownBy(() -> new PmdOperation().defaultLanguageVersions((LanguageVersion[]) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void defaultLanguageVersionsWithNullCollection() {
+            assertThatThrownBy(() -> new PmdOperation().defaultLanguageVersions((Collection<LanguageVersion>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void defaultLanguageVersionsWithNullElement() {
+            var language = LanguageRegistry.PMD.getLanguageById("java");
+            assertThatThrownBy(() -> new PmdOperation()
+                    .defaultLanguageVersions(language.getLatestVersion(), null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void encodingWithEmpty(String arg) {
+            assertThatThrownBy(() -> new PmdOperation().encoding(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void encodingWithNullCharset() {
+            assertThatThrownBy(() -> new PmdOperation().encoding((Charset) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void encodingWithNullString() {
+            assertThatThrownBy(() -> new PmdOperation().encoding((String) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesFilesWithEmptyArray() {
+            assertThatThrownBy(() -> new PmdOperation().excludesFiles(new File[0]))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void excludesFilesWithEmptyCollection() {
+            assertThatThrownBy(() -> new PmdOperation().excludesFiles(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void excludesFilesWithNullArray() {
+            assertThatThrownBy(() -> new PmdOperation().excludesFiles((File[]) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesFilesWithNullCollection() {
+            assertThatThrownBy(() -> new PmdOperation().excludesFiles((Collection<File>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesFilesWithNullElement() {
+            assertThatThrownBy(() -> new PmdOperation().excludesFiles(new File("foo"), null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesStringsWithEmptyArray() {
+            assertThatThrownBy(() -> new PmdOperation().excludesStrings(new String[0]))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void excludesStringsWithEmptyCollection() {
+            assertThatThrownBy(() -> new PmdOperation().excludesStrings(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void excludesStringsWithEmptyElement() {
+            assertThatThrownBy(() -> new PmdOperation().excludesStrings("foo", ""))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void excludesStringsWithNullArray() {
+            assertThatThrownBy(() -> new PmdOperation().excludesStrings((String[]) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesStringsWithNullCollection() {
+            assertThatThrownBy(() -> new PmdOperation().excludesStrings((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesStringsWithNullElement() {
+            assertThatThrownBy(() -> new PmdOperation().excludesStrings("foo", null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesWithEmptyArray() {
+            assertThatThrownBy(() -> new PmdOperation().excludes(new Path[0]))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void excludesWithEmptyCollection() {
+            assertThatThrownBy(() -> new PmdOperation().excludes(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void excludesWithNullArray() {
+            assertThatThrownBy(() -> new PmdOperation().excludes((Path[]) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesWithNullCollection() {
+            assertThatThrownBy(() -> new PmdOperation().excludes((Collection<Path>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void excludesWithNullElement() {
+            assertThatThrownBy(() -> new PmdOperation().excludes(Path.of("foo"), null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void forceLanguageVersionWithNull() {
+            assertThatThrownBy(() -> new PmdOperation().forceLanguageVersion(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void fromProjectWithNull() {
+            assertThatThrownBy(() -> new PmdOperation().fromProject(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void ignoreFileWithEmpty(String arg) {
+            assertThatThrownBy(() -> new PmdOperation().ignoreFile(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void ignoreFileWithNullFile() {
+            assertThatThrownBy(() -> new PmdOperation().ignoreFile((File) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void ignoreFileWithNullPath() {
+            assertThatThrownBy(() -> new PmdOperation().ignoreFile((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void ignoreFileWithNullString() {
+            assertThatThrownBy(() -> new PmdOperation().ignoreFile((String) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void inputPathsFilesWithEmptyCollection() {
+            assertThatThrownBy(() -> new PmdOperation().inputPathsFiles(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @SuppressWarnings("RedundantCast")
+        void inputPathsFilesWithNullCollection() {
+            assertThatThrownBy(() -> new PmdOperation().inputPathsFiles((Collection<File>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void inputPathsFilesWithNullElement() {
+            assertThatThrownBy(() -> new PmdOperation().inputPathsFiles(List.of(new File("foo"), null)))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void inputPathsStringsWithEmptyCollection() {
+            assertThatThrownBy(() -> new PmdOperation().inputPathsStrings(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void inputPathsStringsWithEmptyElement() {
+            assertThatThrownBy(() -> new PmdOperation().inputPathsStrings(List.of("foo", "")))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @SuppressWarnings("RedundantCast")
+        void inputPathsStringsWithNullCollection() {
+            assertThatThrownBy(() -> new PmdOperation().inputPathsStrings((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void inputPathsStringsWithNullElement() {
+            assertThatThrownBy(() -> new PmdOperation().inputPathsStrings(List.of("foo", null)))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void inputPathsWithEmptyArray() {
+            assertThatThrownBy(() -> new PmdOperation().inputPaths(new Path[0]))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void inputPathsWithEmptyCollection() {
+            assertThatThrownBy(() -> new PmdOperation().inputPaths(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void inputPathsWithNullArray() {
+            assertThatThrownBy(() -> new PmdOperation().inputPaths((Path[]) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void inputPathsWithNullCollection() {
+            assertThatThrownBy(() -> new PmdOperation().inputPaths((Collection<Path>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void inputPathsWithNullElement() {
+            assertThatThrownBy(() -> new PmdOperation().inputPaths(Path.of("foo"), null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void minimumPriorityWithNull() {
+            assertThatThrownBy(() -> new PmdOperation().minimumPriority(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void reportPropertiesWithNull() {
+            assertThatThrownBy(() -> new PmdOperation().reportProperties(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void ruleSetsRulesWithEmptyCollection() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSetsRules(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @SuppressWarnings("RedundantCast")
+        void ruleSetsRulesWithNullCollection() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSetsRules((Collection<JavaRules>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void ruleSetsWithEmptyJavaRulesArray() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets(new JavaRules[0]))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void ruleSetsWithEmptyStringArray() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets(new String[0]))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void ruleSetsWithEmptyStringCollection() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void ruleSetsWithEmptyStringElement() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets("foo", ""))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void ruleSetsWithNullJavaRulesArray() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets((JavaRules[]) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void ruleSetsWithNullJavaRulesElement() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets(JavaRules.QUICK_START, null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void ruleSetsWithNullStringArray() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets((String[]) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void ruleSetsWithNullStringCollection() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void ruleSetsWithNullStringElement() {
+            assertThatThrownBy(() -> new PmdOperation().ruleSets("foo", null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void suppressedMarkerWithEmpty(String arg) {
+            assertThatThrownBy(() -> new PmdOperation().suppressedMarker(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void suppressedMarkerWithNull() {
+            assertThatThrownBy(() -> new PmdOperation().suppressedMarker(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void uriWithNull() {
+            assertThatThrownBy(() -> new PmdOperation().uri(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+    }
+
+    @Nested
     @DisplayName("Execution Tests")
     class ExecutionTests {
 
@@ -848,4 +1246,6 @@ class PmdOperationTest {
             assertThatCode(pmd::execute).isInstanceOf(IllegalArgumentException.class);
         }
     }
+
+
 }

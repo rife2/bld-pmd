@@ -162,8 +162,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param languageVersions one or more language versions
      * @return this operation
-     * @throws NullPointerException     if {@code languageVersions} is {@code null}
-     * @throws IllegalArgumentException if {@code languageVersions} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code languageVersions} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code languageVersions} is empty
      * @see #defaultLanguageVersions(Collection)
      * @see #defaultLanguageVersions()
      */
@@ -178,8 +178,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param languageVersions a collection of language versions
      * @return this operation
-     * @throws NullPointerException     if {@code languageVersions} is {@code null}
-     * @throws IllegalArgumentException if {@code languageVersions} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code languageVersions} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code languageVersions} is empty
      * @see #defaultLanguageVersions(LanguageVersion...)
      * @see #defaultLanguageVersions()
      */
@@ -249,8 +249,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param paths one or more paths to exclude
      * @return this operation
-     * @throws NullPointerException     if {@code paths} is {@code null}
-     * @throws IllegalArgumentException if {@code paths} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty
      * @see #excludes(Collection)
      * @see #excludes()
      */
@@ -265,8 +265,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param paths paths to exclude
      * @return this operation
-     * @throws NullPointerException     if {@code paths} is {@code null}
-     * @throws IllegalArgumentException if {@code paths} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty
      * @see #excludes(Path...)
      * @see #excludes()
      */
@@ -281,8 +281,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param files one or more paths to exclude
      * @return this operation
-     * @throws NullPointerException     if {@code files} is {@code null}
-     * @throws IllegalArgumentException if {@code files} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #excludesFiles(Collection)
      * @see #excludes(Path...)
      * @since 1.2
@@ -298,8 +298,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param files a collection of paths to exclude
      * @return this operation
-     * @throws NullPointerException     if {@code files} is {@code null}
-     * @throws IllegalArgumentException if {@code files} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #excludesFiles(File...)
      * @see #excludes(Path...)
      * @since 1.2
@@ -315,8 +315,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param excludes one or more paths to exclude
      * @return this operation
-     * @throws NullPointerException     if {@code excludes} is {@code null}
-     * @throws IllegalArgumentException if {@code excludes} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code excludes} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code excludes} is empty, or contains empty elements
      * @see #excludesStrings(Collection)
      * @see #excludes(Path...)
      * @since 1.2
@@ -332,8 +332,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param excludes a collection of paths to exclude
      * @return this operation
-     * @throws NullPointerException     if {@code excludes} is {@code null}
-     * @throws IllegalArgumentException if {@code excludes} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code excludes} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code excludes} is empty, or contains empty elements
      * @see #excludesStrings(String...)
      * @see #excludes(Path...)
      * @since 1.2
@@ -513,8 +513,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param paths one or more paths
      * @return this operation
-     * @throws NullPointerException     if {@code paths} is {@code null}
-     * @throws IllegalArgumentException if {@code paths} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty
      * @see #inputPaths(Collection)
      * @see #inputPaths()
      */
@@ -529,8 +529,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param files one or more paths
      * @return this operation
-     * @throws NullPointerException     if {@code files} is {@code null}
-     * @throws IllegalArgumentException if {@code files} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #inputPathsFiles(Collection)
      * @see #inputPaths(Path...)
      * @see #inputPaths()
@@ -546,8 +546,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPaths one or more paths
      * @return this operation
-     * @throws NullPointerException     if {@code inputPaths} is {@code null}
-     * @throws IllegalArgumentException if {@code inputPaths} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code inputPaths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code inputPaths} is empty, or contains empty elements
      * @see #inputPathsStrings(Collection)
      * @see #inputPaths(Path...)
      * @see #inputPaths()
@@ -563,8 +563,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param paths a collection of input paths
      * @return this operation
-     * @throws NullPointerException     if {@code paths} is {@code null}
-     * @throws IllegalArgumentException if {@code paths} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty
      * @see #inputPaths(Path...)
      * @see #inputPaths()
      */
@@ -579,8 +579,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param files a collection of input paths
      * @return this operation
-     * @throws NullPointerException     if {@code files} is {@code null}
-     * @throws IllegalArgumentException if {@code files} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #inputPaths(File...)
      * @see #inputPaths(Path...)
      * @see #inputPaths()
@@ -596,8 +596,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param inputPaths a collection of input paths
      * @return this operation
-     * @throws NullPointerException     if {@code inputPaths} is {@code null}
-     * @throws IllegalArgumentException if {@code inputPaths} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code inputPaths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code inputPaths} is empty, or contains empty elements
      * @see #inputPaths(String...)
      * @see #inputPaths(Path...)
      * @see #inputPaths()
@@ -700,8 +700,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param classpaths one or more classpaths entries
      * @return this operation
-     * @throws NullPointerException     if {@code classpaths} is {@code null}
-     * @throws IllegalArgumentException if {@code classpaths} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code classpaths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code classpaths} is empty
      * @see #prependAuxClasspath()
      */
     public PmdOperation prependAuxClasspath(@NonNull String... classpaths) {
@@ -725,8 +725,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param roots one or more relative root paths
      * @return this operation
-     * @throws NullPointerException     if {@code roots} is {@code null}
-     * @throws IllegalArgumentException if {@code roots} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code roots} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code roots} is empty
      * @see #relativizeRoots(Collection)
      * @see #relativizeRoots()
      */
@@ -741,8 +741,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param roots one or more relative root paths
      * @return this operation
-     * @throws NullPointerException     if {@code roots} is {@code null}
-     * @throws IllegalArgumentException if {@code roots} is empty, or contains {@code null} orvelements
+     * @throws NullPointerException     if {@code roots} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code roots} is empty
      * @see #relativizeRootsFiles(Collection)
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
@@ -758,8 +758,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param roots one or more relative root paths
      * @return this operation
-     * @throws NullPointerException     if {@code roots} is {@code null}
-     * @throws IllegalArgumentException if {@code roots} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code roots} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code roots} is empty, or contains empty elements
      * @see #relativizeRootsStrings(Collection)
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
@@ -775,8 +775,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param roots a collection of relative root paths
      * @return this operation
-     * @throws NullPointerException     if {@code roots} is {@code null}
-     * @throws IllegalArgumentException if {@code roots} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code roots} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code roots} is empty
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
      */
@@ -802,8 +802,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param roots a collection of relative root paths
      * @return this operation
-     * @throws NullPointerException     if {@code roots} is {@code null}
-     * @throws IllegalArgumentException if {@code roots} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code roots} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code roots} is empty
      * @see #relativizeRoots(File...)
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
@@ -819,8 +819,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param roots a collection of relative root paths
      * @return this operation
-     * @throws NullPointerException     if {@code roots} is {@code null}
-     * @throws IllegalArgumentException if {@code roots} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code roots} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code roots} is empty, or contains empty elements
      * @see #relativizeRoots(String...)
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
@@ -935,8 +935,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param ruleSets one or more rule set paths
      * @return this operation
-     * @throws NullPointerException     if {@code ruleSets} is {@code null}
-     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code ruleSets} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains empty elements
      * @see #ruleSets(Collection)
      * @see #ruleSets(JavaRules...)
      * @see #ruleSetsRules(Collection)
@@ -953,8 +953,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param ruleSets a collection of rule set paths
      * @return this operation
-     * @throws NullPointerException     if {@code ruleSets} is {@code null}
-     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code ruleSets} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains empty elements
      * @see #ruleSets(String...)
      * @see #ruleSets(JavaRules...)
      * @see #ruleSetsRules(Collection)
@@ -971,8 +971,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param ruleSets one or more rule sets
      * @return this operation
-     * @throws NullPointerException     if {@code ruleSets} is {@code null}
-     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code ruleSets} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code ruleSets} is empty
      * @see #ruleSets(String...)
      * @see #ruleSets(Collection)
      * @see #ruleSetsRules(Collection)
@@ -990,8 +990,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *
      * @param ruleSets a collection of rule sets
      * @return this operation
-     * @throws NullPointerException     if {@code ruleSets} is {@code null}
-     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code ruleSets} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code ruleSets} is empty
      * @see #ruleSets(String...)
      * @see #ruleSets(Collection)
      * @see #ruleSets(JavaRules...)
@@ -1063,7 +1063,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Creates a new initialized configuration.
      *
      * @return a fully configured {@link PMDConfiguration}
-     * @throws NullPointerException     if the {@link #inputPaths() input path} is {@code null}
+     * @throws NullPointerException     if the {@link #inputPaths() input path} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@link #inputPaths() input path} is empty
      */
     @TestOnly
