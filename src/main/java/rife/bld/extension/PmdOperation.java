@@ -30,6 +30,7 @@ import rife.bld.extension.pmd.PmdAnalysisResults;
 import rife.bld.extension.tools.CollectionTools;
 import rife.bld.extension.tools.IOTools;
 import rife.bld.extension.tools.ObjectTools;
+import rife.bld.extension.tools.TextTools;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 
@@ -97,6 +98,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      */
     @Override
     public void execute() throws Exception {
+        if (canLog(Level.INFO)) {
+            logger.info("Running PMD analysis...");
+        }
         performAnalysis(initConfiguration());
     }
 
@@ -135,12 +139,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param cache the cache file path
      * @return this operation
      * @throws NullPointerException     if {@code cache} is {@code null}
-     * @throws IllegalArgumentException if {@code cache} is empty
+     * @throws IllegalArgumentException if {@code cache} is blank
      * @see #cache(Path)
      * @see #cache(File)
      */
     public PmdOperation cache(@NonNull String cache) {
-        cache_ = Path.of(ObjectTools.requireNotEmpty(cache, "cache"));
+        cache_ = Path.of(TextTools.requireNotBlank(cache, "cache"));
         return this;
     }
 
@@ -209,11 +213,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param encoding the encoding name
      * @return this operation
      * @throws NullPointerException     if {@code encoding} is {@code null}
-     * @throws IllegalArgumentException if {@code encoding} is empty
+     * @throws IllegalArgumentException if {@code encoding} is blank
      * @see #encoding(Charset)
      */
     public PmdOperation encoding(@NonNull String encoding) {
-        encoding_ = Charset.forName(ObjectTools.requireNotEmpty(encoding, "encoding"));
+        encoding_ = Charset.forName(TextTools.requireNotBlank(encoding, "encoding"));
         return this;
     }
 
@@ -316,13 +320,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param excludes one or more paths to exclude
      * @return this operation
      * @throws NullPointerException     if {@code excludes} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code excludes} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code excludes} is empty, or contains blank elements
      * @see #excludesStrings(Collection)
      * @see #excludes(Path...)
      * @since 1.2
      */
     public PmdOperation excludesStrings(@NonNull String... excludes) {
-        ObjectTools.requireNotEmpty(excludes, "excludeStrings");
+        TextTools.requireNotBlank("excludeStrings", excludes);
         excludes_.addAll(CollectionTools.combineStringsToPaths(excludes));
         return this;
     }
@@ -333,13 +337,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param excludes a collection of paths to exclude
      * @return this operation
      * @throws NullPointerException     if {@code excludes} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code excludes} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code excludes} is empty, or contains blank elements
      * @see #excludesStrings(String...)
      * @see #excludes(Path...)
      * @since 1.2
      */
     public final PmdOperation excludesStrings(@NonNull Collection<String> excludes) {
-        ObjectTools.requireNotEmpty(excludes, "excludeStrings");
+        TextTools.requireNotBlank(excludes, "excludesStrings");
         excludes_.addAll(CollectionTools.combineStringsToPaths(excludes));
         return this;
     }
@@ -461,12 +465,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param ignoreFile the ignore file path
      * @return this operation
      * @throws NullPointerException     if {@code ignoreFile} is {@code null}
-     * @throws IllegalArgumentException if {@code ignoreFile} is empty
+     * @throws IllegalArgumentException if {@code ignoreFile} is blank
      * @see #ignoreFile(Path)
      * @see #ignoreFile(File)
      */
     public PmdOperation ignoreFile(@NonNull String ignoreFile) {
-        ignoreFile_ = Path.of(ObjectTools.requireNotEmpty(ignoreFile, "ignoreFile"));
+        ignoreFile_ = Path.of(TextTools.requireNotBlank(ignoreFile, "ignoreFile"));
         return this;
     }
 
@@ -547,13 +551,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param inputPaths one or more paths
      * @return this operation
      * @throws NullPointerException     if {@code inputPaths} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code inputPaths} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code inputPaths} is empty, or contains blank elements
      * @see #inputPathsStrings(Collection)
      * @see #inputPaths(Path...)
      * @see #inputPaths()
      */
     public PmdOperation inputPaths(@NonNull String... inputPaths) {
-        ObjectTools.requireNotEmpty(inputPaths, INPUT_PATHS);
+        TextTools.requireNotBlank("inputPaths", inputPaths);
         inputPaths_.addAll(CollectionTools.combineStringsToPaths(inputPaths));
         return this;
     }
@@ -597,13 +601,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param inputPaths a collection of input paths
      * @return this operation
      * @throws NullPointerException     if {@code inputPaths} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code inputPaths} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code inputPaths} is empty, or contains blank elements
      * @see #inputPaths(String...)
      * @see #inputPaths(Path...)
      * @see #inputPaths()
      */
     public PmdOperation inputPathsStrings(@NonNull Collection<String> inputPaths) {
-        ObjectTools.requireNotEmpty(inputPaths, "inputPathsStrings");
+        TextTools.requireNotBlank(inputPaths, "inputPathsStrings");
         inputPaths_.addAll(CollectionTools.combineStringsToPaths(inputPaths));
         return this;
     }
@@ -701,11 +705,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param classpaths one or more classpaths entries
      * @return this operation
      * @throws NullPointerException     if {@code classpaths} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code classpaths} is empty
+     * @throws IllegalArgumentException if {@code classpaths} is empty, or contains blank elements
      * @see #prependAuxClasspath()
      */
     public PmdOperation prependAuxClasspath(@NonNull String... classpaths) {
-        ObjectTools.requireNotEmpty(classpaths, "prependAuxClasspath");
+        TextTools.requireNotBlank("prependAuxClasspath", classpaths);
         prependAuxClasspath_ = String.join(File.pathSeparator, classpaths);
         return this;
     }
@@ -759,13 +763,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param roots one or more relative root paths
      * @return this operation
      * @throws NullPointerException     if {@code roots} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code roots} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code roots} is empty, or contains blank elements
      * @see #relativizeRootsStrings(Collection)
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
      */
     public PmdOperation relativizeRoots(@NonNull String... roots) {
-        ObjectTools.requireNotEmpty(roots, RELATIVIZE_ROOTS);
+        TextTools.requireNotBlank("relativizeRoots", roots);
         relativizeRoots_.addAll(CollectionTools.combineStringsToPaths(roots));
         return this;
     }
@@ -820,13 +824,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param roots a collection of relative root paths
      * @return this operation
      * @throws NullPointerException     if {@code roots} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code roots} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code roots} is empty, or contains blank elements
      * @see #relativizeRoots(String...)
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
      */
     public final PmdOperation relativizeRootsStrings(@NonNull Collection<String> roots) {
-        ObjectTools.requireNotEmpty(roots, "relativizeRootsStrings");
+        TextTools.requireNotBlank(roots, "relativizeRootsStrings");
         relativizeRoots_.addAll(CollectionTools.combineStringsToPaths(roots));
         return this;
     }
@@ -868,13 +872,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param reportFile the report file path
      * @return this operation
      * @throws NullPointerException     if {@code reportFile} is {@code null}
-     * @throws IllegalArgumentException if {@code reportFile} is empty
+     * @throws IllegalArgumentException if {@code reportFile} is blank
      * @see #reportFile(Path)
      * @see #reportFile(File)
      * @see #reportFile()
      */
     public PmdOperation reportFile(@NonNull String reportFile) {
-        ObjectTools.requireNotEmpty(reportFile, "reportFile");
+        TextTools.requireNotBlank(reportFile, "reportFile");
         reportFile_ = Path.of(reportFile);
         return this;
     }
@@ -897,10 +901,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param format the report format
      * @return this operation
      * @throws NullPointerException     if {@code format} is {@code null}
-     * @throws IllegalArgumentException if {@code format} is empty
+     * @throws IllegalArgumentException if {@code format} is blank
      */
     public PmdOperation reportFormat(@NonNull String format) {
-        reportFormat_ = ObjectTools.requireNotEmpty(format, "reportFormat");
+        reportFormat_ = TextTools.requireNotBlank(format, "reportFormat");
         return this;
     }
 
@@ -936,14 +940,14 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param ruleSets one or more rule set paths
      * @return this operation
      * @throws NullPointerException     if {@code ruleSets} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains blank elements
      * @see #ruleSets(Collection)
      * @see #ruleSets(JavaRules...)
      * @see #ruleSetsRules(Collection)
      * @see #ruleSets()
      */
     public PmdOperation ruleSets(@NonNull String... ruleSets) {
-        ObjectTools.requireNotEmpty(ruleSets, RULE_SETS);
+        TextTools.requireNotBlank("ruleSets", ruleSets);
         ruleSets_.addAll(List.of(ruleSets));
         return this;
     }
@@ -954,14 +958,14 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param ruleSets a collection of rule set paths
      * @return this operation
      * @throws NullPointerException     if {@code ruleSets} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code ruleSets} is empty, or contains blank elements
      * @see #ruleSets(String...)
      * @see #ruleSets(JavaRules...)
      * @see #ruleSetsRules(Collection)
      * @see #ruleSets()
      */
     public final PmdOperation ruleSets(@NonNull Collection<String> ruleSets) {
-        ObjectTools.requireNotEmpty(ruleSets, RULE_SETS);
+        TextTools.requireNotBlank(ruleSets, RULE_SETS);
         ruleSets_.addAll(ruleSets);
         return this;
     }
@@ -1021,10 +1025,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param marker the suppressed marker token
      * @return this operation
      * @throws NullPointerException     if {@code marker} is {@code null}
-     * @throws IllegalArgumentException if {@code marker} is empty
+     * @throws IllegalArgumentException if {@code marker} is blank
      */
     public PmdOperation suppressedMarker(@NonNull String marker) {
-        suppressedMarker_ = ObjectTools.requireNotEmpty(marker, "suppressedMarker");
+        suppressedMarker_ = TextTools.requireNotBlank(marker, "suppressedMarker");
         return this;
     }
 
