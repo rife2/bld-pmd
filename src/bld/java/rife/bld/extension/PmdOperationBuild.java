@@ -53,7 +53,7 @@ public class PmdOperationBuild extends Project {
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(provided)
                 .include(dependency("com.github.spotbugs", "spotbugs-annotations",
-                        version(4, 9, 8)))
+                        version(4, 10, 3)))
                 .include(dependency("org.jetbrains", "annotations",
                         version(26, 1, 0)));
         scope(runtime)
