@@ -52,6 +52,7 @@ public class PmdOperationBuild extends Project {
                         version(2, 3, 1, "SNAPSHOT")))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(provided)
+                .include(dependency("org.jspecify", "jspecify", "1.0.1"))
                 .include(dependency("com.github.spotbugs", "spotbugs-annotations",
                         version(4, 10, 3)))
                 .include(dependency("org.jetbrains", "annotations",
@@ -75,7 +76,7 @@ public class PmdOperationBuild extends Project {
                 .link("https://rife2.github.io/bld/")
                 .link("https://rife2.github.io/rife2/")
                 .link("https://javadoc.io/doc/net.sourceforge.pmd/pmd-core/latest/")
-                .link("https://findbugs.sourceforge.net/api/");
+                .link("https://jspecify.dev/docs/api/");
 
         publishOperation()
                 .repository(version.isSnapshot() ? repository("rife2-snapshot") : repository("rife2"))

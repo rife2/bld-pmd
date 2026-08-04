@@ -116,6 +116,7 @@ class PmdOperationTest {
         }
 
         @Test
+        @SuppressWarnings("DataFlowIssue")
         void defaultLanguageVersions() throws ExitStatusException {
             var language = LanguageRegistry.PMD.getLanguageById("java");
             assertThat(language).isNotNull();
@@ -631,6 +632,7 @@ class PmdOperationTest {
             }
 
             @Test
+            @SuppressWarnings("DataFlowIssue")
             void reportFormat() throws IOException, ExitStatusException {
                 var pmd = newPmdOperation()
                         .ruleSets(JavaRules.ERROR_PRONE)

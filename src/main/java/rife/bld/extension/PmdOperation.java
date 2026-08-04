@@ -16,7 +16,6 @@
 
 package rife.bld.extension;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.sourceforge.pmd.PMDConfiguration;
 import net.sourceforge.pmd.PmdAnalysis;
@@ -24,6 +23,8 @@ import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.rule.RulePriority;
 import net.sourceforge.pmd.reporting.RuleViolation;
 import org.jetbrains.annotations.TestOnly;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import rife.bld.BaseProject;
 import rife.bld.extension.pmd.JavaRules;
 import rife.bld.extension.pmd.PmdAnalysisResults;
@@ -49,6 +50,7 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@NullMarked
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 @SuppressFBWarnings(
         value = "EI_EXPOSE_REP",
@@ -71,18 +73,18 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     private final List<Path> relativizeRoots_ = new ArrayList<>();
     private final Properties reportProperties_ = new Properties();
     private final Set<String> ruleSets_ = new LinkedHashSet<>();
-    private Path cache_;
+    private @Nullable Path cache_;
     private boolean collectFilesRecursively_ = true;
     private Charset encoding_ = StandardCharsets.UTF_8;
     private boolean failOnError_ = true;
     private boolean failOnViolation_;
-    private LanguageVersion forcedLanguageVersion_;
-    private Path ignoreFile_;
+    private @Nullable LanguageVersion forcedLanguageVersion_;
+    private @Nullable Path ignoreFile_;
     private boolean includeLineNumber_ = true;
     private boolean incrementalAnalysis_ = true;
-    private URI inputUri_;
-    private String prependAuxClasspath_;
-    private Path reportFile_;
+    private @Nullable URI inputUri_;
+    private @Nullable String prependAuxClasspath_;
+    private @Nullable Path reportFile_;
     private String reportFormat_ = "text";
     private RulePriority rulePriority_ = RulePriority.LOW;
     private boolean showSuppressed_;
@@ -113,7 +115,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #cache(File)
      * @see #cache(String)
      */
-    public PmdOperation cache(@NonNull Path path) {
+    public PmdOperation cache(Path path) {
         cache_ = ObjectTools.requireNonNull(path, "path");
         return this;
     }
@@ -127,7 +129,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #cache(Path)
      * @see #cache(String)
      */
-    public PmdOperation cache(@NonNull File file) {
+    public PmdOperation cache(File file) {
         ObjectTools.requireNonNull(file, "file");
         cache_ = file.toPath();
         return this;
@@ -143,7 +145,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #cache(Path)
      * @see #cache(File)
      */
-    public PmdOperation cache(@NonNull String cache) {
+    public PmdOperation cache(String cache) {
         cache_ = Path.of(TextTools.requireNotBlank(cache, "cache"));
         return this;
     }
@@ -171,7 +173,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #defaultLanguageVersions(Collection)
      * @see #defaultLanguageVersions()
      */
-    public PmdOperation defaultLanguageVersions(@NonNull LanguageVersion... languageVersions) {
+    public PmdOperation defaultLanguageVersions(LanguageVersion... languageVersions) {
         ObjectTools.requireNotEmpty(languageVersions, "defaultLanguageVersion");
         defaultLanguageVersions_.addAll(List.of(languageVersions));
         return this;
@@ -187,7 +189,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #defaultLanguageVersions(LanguageVersion...)
      * @see #defaultLanguageVersions()
      */
-    public final PmdOperation defaultLanguageVersions(@NonNull Collection<LanguageVersion> languageVersions) {
+    public final PmdOperation defaultLanguageVersions(Collection<LanguageVersion> languageVersions) {
         ObjectTools.requireNotEmpty(languageVersions, "defaultLanguageVersions");
         defaultLanguageVersions_.addAll(languageVersions);
         return this;
@@ -216,7 +218,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @throws IllegalArgumentException if {@code encoding} is blank
      * @see #encoding(Charset)
      */
-    public PmdOperation encoding(@NonNull String encoding) {
+    public PmdOperation encoding(String encoding) {
         encoding_ = Charset.forName(TextTools.requireNotBlank(encoding, "encoding"));
         return this;
     }
@@ -232,7 +234,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @throws NullPointerException if {@code encoding} is {@code null}
      * @see #encoding(String)
      */
-    public PmdOperation encoding(@NonNull Charset encoding) {
+    public PmdOperation encoding(Charset encoding) {
         encoding_ = ObjectTools.requireNonNull(encoding, "encoding");
         return this;
     }
@@ -258,7 +260,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #excludes(Collection)
      * @see #excludes()
      */
-    public PmdOperation excludes(@NonNull Path... paths) {
+    public PmdOperation excludes(Path... paths) {
         ObjectTools.requireNotEmpty(paths, "excludes");
         excludes_.addAll(List.of(paths));
         return this;
@@ -274,7 +276,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #excludes(Path...)
      * @see #excludes()
      */
-    public final PmdOperation excludes(@NonNull Collection<Path> paths) {
+    public final PmdOperation excludes(Collection<Path> paths) {
         ObjectTools.requireNotEmpty(paths, "excludes");
         excludes_.addAll(paths);
         return this;
@@ -291,7 +293,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #excludes(Path...)
      * @since 1.2
      */
-    public PmdOperation excludesFiles(@NonNull File... files) {
+    public PmdOperation excludesFiles(File... files) {
         ObjectTools.requireNotEmpty(files, "excludesFiles");
         excludes_.addAll(CollectionTools.combineFilesToPaths(files));
         return this;
@@ -308,7 +310,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #excludes(Path...)
      * @since 1.2
      */
-    public final PmdOperation excludesFiles(@NonNull Collection<File> files) {
+    public final PmdOperation excludesFiles(Collection<File> files) {
         ObjectTools.requireNotEmpty(files, "excludesFiles");
         excludes_.addAll(CollectionTools.combineFilesToPaths(files));
         return this;
@@ -325,7 +327,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #excludes(Path...)
      * @since 1.2
      */
-    public PmdOperation excludesStrings(@NonNull String... excludes) {
+    public PmdOperation excludesStrings(String... excludes) {
         TextTools.requireNotBlank("excludeStrings", excludes);
         excludes_.addAll(CollectionTools.combineStringsToPaths(excludes));
         return this;
@@ -342,7 +344,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #excludes(Path...)
      * @since 1.2
      */
-    public final PmdOperation excludesStrings(@NonNull Collection<String> excludes) {
+    public final PmdOperation excludesStrings(Collection<String> excludes) {
         TextTools.requireNotBlank(excludes, "excludesStrings");
         excludes_.addAll(CollectionTools.combineStringsToPaths(excludes));
         return this;
@@ -385,7 +387,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      * @throws NullPointerException if {@code languageVersion} is {@code null}
      */
-    public PmdOperation forceLanguageVersion(@NonNull LanguageVersion languageVersion) {
+    public PmdOperation forceLanguageVersion(LanguageVersion languageVersion) {
         forcedLanguageVersion_ = ObjectTools.requireNonNull(languageVersion, "forceLanguageVersion");
         return this;
     }
@@ -412,7 +414,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      * @throws NullPointerException if {@code project} is {@code null}
      */
-    public PmdOperation fromProject(@NonNull BaseProject project) {
+    public PmdOperation fromProject(BaseProject project) {
         ObjectTools.requireNonNull(project, "fromProject");
         if (inputPaths_.isEmpty()) {
             inputPaths(project.srcMainDirectory(), project.srcTestDirectory());
@@ -439,7 +441,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ignoreFile(File)
      * @see #ignoreFile(String)
      */
-    public PmdOperation ignoreFile(@NonNull Path path) {
+    public PmdOperation ignoreFile(Path path) {
         ignoreFile_ = ObjectTools.requireNonNull(path, "ignoreFile");
         return this;
     }
@@ -453,7 +455,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ignoreFile(Path)
      * @see #ignoreFile(String)
      */
-    public PmdOperation ignoreFile(@NonNull File file) {
+    public PmdOperation ignoreFile(File file) {
         ObjectTools.requireNonNull(file, "ignoreFile");
         ignoreFile_ = file.toPath();
         return this;
@@ -469,7 +471,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ignoreFile(Path)
      * @see #ignoreFile(File)
      */
-    public PmdOperation ignoreFile(@NonNull String ignoreFile) {
+    public PmdOperation ignoreFile(String ignoreFile) {
         ignoreFile_ = Path.of(TextTools.requireNotBlank(ignoreFile, "ignoreFile"));
         return this;
     }
@@ -522,7 +524,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Collection)
      * @see #inputPaths()
      */
-    public PmdOperation inputPaths(@NonNull Path... paths) {
+    public PmdOperation inputPaths(Path... paths) {
         ObjectTools.requireNotEmpty(paths, INPUT_PATHS);
         inputPaths_.addAll(List.of(paths));
         return this;
@@ -539,7 +541,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Path...)
      * @see #inputPaths()
      */
-    public PmdOperation inputPaths(@NonNull File... files) {
+    public PmdOperation inputPaths(File... files) {
         ObjectTools.requireNotEmpty(files, INPUT_PATHS);
         inputPaths_.addAll(CollectionTools.combineFilesToPaths(files));
         return this;
@@ -556,7 +558,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Path...)
      * @see #inputPaths()
      */
-    public PmdOperation inputPaths(@NonNull String... inputPaths) {
+    public PmdOperation inputPaths(String... inputPaths) {
         TextTools.requireNotBlank("inputPaths", inputPaths);
         inputPaths_.addAll(CollectionTools.combineStringsToPaths(inputPaths));
         return this;
@@ -572,7 +574,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Path...)
      * @see #inputPaths()
      */
-    public final PmdOperation inputPaths(@NonNull Collection<Path> paths) {
+    public final PmdOperation inputPaths(Collection<Path> paths) {
         ObjectTools.requireNotEmpty(paths, INPUT_PATHS);
         inputPaths_.addAll(paths);
         return this;
@@ -589,7 +591,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Path...)
      * @see #inputPaths()
      */
-    public final PmdOperation inputPathsFiles(@NonNull Collection<File> files) {
+    public final PmdOperation inputPathsFiles(Collection<File> files) {
         ObjectTools.requireNotEmpty(files, "inputPathFiles");
         inputPaths_.addAll(CollectionTools.combineFilesToPaths(files));
         return this;
@@ -606,7 +608,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #inputPaths(Path...)
      * @see #inputPaths()
      */
-    public PmdOperation inputPathsStrings(@NonNull Collection<String> inputPaths) {
+    public PmdOperation inputPathsStrings(Collection<String> inputPaths) {
         TextTools.requireNotBlank(inputPaths, "inputPathsStrings");
         inputPaths_.addAll(CollectionTools.combineStringsToPaths(inputPaths));
         return this;
@@ -619,7 +621,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      * @throws NullPointerException if {@code priority} is {@code null}
      */
-    public PmdOperation minimumPriority(@NonNull RulePriority priority) {
+    public PmdOperation minimumPriority(RulePriority priority) {
         rulePriority_ = ObjectTools.requireNonNull(priority, "minimumPriority");
         return this;
     }
@@ -633,7 +635,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @throws ExitStatusException  if violations or errors occur and {@code failOnViolation}
      *                              or {@code failOnError} is true
      */
-    public PmdAnalysisResults performAnalysis(@NonNull PMDConfiguration config) throws ExitStatusException {
+    public PmdAnalysisResults performAnalysis(PMDConfiguration config) throws ExitStatusException {
         ObjectTools.requireNonNull(config, "performAnalysis");
         try (var pmd = PmdAnalysis.create(config)) {
             var report = pmd.performAnalysisAndCollectReport();
@@ -708,7 +710,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @throws IllegalArgumentException if {@code classpaths} is empty, or contains blank elements
      * @see #prependAuxClasspath()
      */
-    public PmdOperation prependAuxClasspath(@NonNull String... classpaths) {
+    public PmdOperation prependAuxClasspath(String... classpaths) {
         TextTools.requireNotBlank("prependAuxClasspath", classpaths);
         prependAuxClasspath_ = String.join(File.pathSeparator, classpaths);
         return this;
@@ -720,6 +722,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return the classpath
      * @see #prependAuxClasspath(String...)
      */
+    @Nullable
     public String prependAuxClasspath() {
         return prependAuxClasspath_;
     }
@@ -734,7 +737,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(Collection)
      * @see #relativizeRoots()
      */
-    public PmdOperation relativizeRoots(@NonNull Path... roots) {
+    public PmdOperation relativizeRoots(Path... roots) {
         ObjectTools.requireNotEmpty(roots, RELATIVIZE_ROOTS);
         relativizeRoots_.addAll(List.of(roots));
         return this;
@@ -751,7 +754,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
      */
-    public PmdOperation relativizeRoots(@NonNull File... roots) {
+    public PmdOperation relativizeRoots(File... roots) {
         ObjectTools.requireNotEmpty(roots, RELATIVIZE_ROOTS);
         relativizeRoots_.addAll(CollectionTools.combineFilesToPaths(roots));
         return this;
@@ -768,7 +771,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
      */
-    public PmdOperation relativizeRoots(@NonNull String... roots) {
+    public PmdOperation relativizeRoots(String... roots) {
         TextTools.requireNotBlank("relativizeRoots", roots);
         relativizeRoots_.addAll(CollectionTools.combineStringsToPaths(roots));
         return this;
@@ -784,7 +787,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
      */
-    public final PmdOperation relativizeRoots(@NonNull Collection<Path> roots) {
+    public final PmdOperation relativizeRoots(Collection<Path> roots) {
         ObjectTools.requireNotEmpty(roots, RELATIVIZE_ROOTS);
         relativizeRoots_.addAll(roots);
         return this;
@@ -812,7 +815,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
      */
-    public final PmdOperation relativizeRootsFiles(@NonNull Collection<File> roots) {
+    public final PmdOperation relativizeRootsFiles(Collection<File> roots) {
         ObjectTools.requireNotEmpty(roots, "relativizeRootsFiles");
         relativizeRoots_.addAll(CollectionTools.combineFilesToPaths(roots));
         return this;
@@ -829,7 +832,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #relativizeRoots(Path...)
      * @see #relativizeRoots()
      */
-    public final PmdOperation relativizeRootsStrings(@NonNull Collection<String> roots) {
+    public final PmdOperation relativizeRootsStrings(Collection<String> roots) {
         TextTools.requireNotBlank(roots, "relativizeRootsStrings");
         relativizeRoots_.addAll(CollectionTools.combineStringsToPaths(roots));
         return this;
@@ -845,7 +848,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #reportFile(String)
      * @see #reportFile()
      */
-    public PmdOperation reportFile(@NonNull Path path) {
+    public PmdOperation reportFile(Path path) {
         reportFile_ = ObjectTools.requireNonNull(path, "reportFile");
         return this;
     }
@@ -860,7 +863,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #reportFile(String)
      * @see #reportFile()
      */
-    public PmdOperation reportFile(@NonNull File file) {
+    public PmdOperation reportFile(File file) {
         ObjectTools.requireNonNull(file, "reportFile");
         reportFile_ = file.toPath();
         return this;
@@ -877,7 +880,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #reportFile(File)
      * @see #reportFile()
      */
-    public PmdOperation reportFile(@NonNull String reportFile) {
+    public PmdOperation reportFile(String reportFile) {
         TextTools.requireNotBlank(reportFile, "reportFile");
         reportFile_ = Path.of(reportFile);
         return this;
@@ -891,6 +894,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #reportFile(File)
      * @see #reportFile(String)
      */
+    @Nullable
     public Path reportFile() {
         return reportFile_;
     }
@@ -903,7 +907,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @throws NullPointerException     if {@code format} is {@code null}
      * @throws IllegalArgumentException if {@code format} is blank
      */
-    public PmdOperation reportFormat(@NonNull String format) {
+    public PmdOperation reportFormat(String format) {
         reportFormat_ = TextTools.requireNotBlank(format, "reportFormat");
         return this;
     }
@@ -915,7 +919,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      * @throws NullPointerException if {@code properties} is {@code null}
      */
-    public PmdOperation reportProperties(@NonNull Properties properties) {
+    public PmdOperation reportProperties(Properties properties) {
         ObjectTools.requireNonNull(properties, "reportProperties");
         reportProperties_.putAll(properties);
         return this;
@@ -946,7 +950,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ruleSetsRules(Collection)
      * @see #ruleSets()
      */
-    public PmdOperation ruleSets(@NonNull String... ruleSets) {
+    public PmdOperation ruleSets(String... ruleSets) {
         TextTools.requireNotBlank("ruleSets", ruleSets);
         ruleSets_.addAll(List.of(ruleSets));
         return this;
@@ -964,7 +968,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ruleSetsRules(Collection)
      * @see #ruleSets()
      */
-    public final PmdOperation ruleSets(@NonNull Collection<String> ruleSets) {
+    public final PmdOperation ruleSets(Collection<String> ruleSets) {
         TextTools.requireNotBlank(ruleSets, RULE_SETS);
         ruleSets_.addAll(ruleSets);
         return this;
@@ -983,7 +987,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ruleSets()
      * @since 1.5
      */
-    public final PmdOperation ruleSets(@NonNull JavaRules... ruleSets) {
+    public final PmdOperation ruleSets(JavaRules... ruleSets) {
         ObjectTools.requireNotEmpty(ruleSets, RULE_SETS);
         ruleSets_.addAll(Arrays.stream(ruleSets).map(JavaRules::getCategory).toList());
         return this;
@@ -1002,7 +1006,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @see #ruleSets()
      * @since 1.5
      */
-    public final PmdOperation ruleSetsRules(@NonNull Collection<JavaRules> ruleSets) {
+    public final PmdOperation ruleSetsRules(Collection<JavaRules> ruleSets) {
         ObjectTools.requireNotEmpty(ruleSets, "ruleSetsRules");
         ruleSets_.addAll(ruleSets.stream().map(JavaRules::getCategory).toList());
         return this;
@@ -1027,7 +1031,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @throws NullPointerException     if {@code marker} is {@code null}
      * @throws IllegalArgumentException if {@code marker} is blank
      */
-    public PmdOperation suppressedMarker(@NonNull String marker) {
+    public PmdOperation suppressedMarker(String marker) {
         suppressedMarker_ = TextTools.requireNotBlank(marker, "suppressedMarker");
         return this;
     }
@@ -1050,7 +1054,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @return this operation
      * @throws NullPointerException if {@code inputUri} is {@code null}
      */
-    public PmdOperation uri(@NonNull URI inputUri) {
+    public PmdOperation uri(URI inputUri) {
         inputUri_ = ObjectTools.requireNonNull(inputUri, "uri");
         return this;
     }
