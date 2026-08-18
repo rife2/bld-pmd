@@ -58,6 +58,8 @@ import java.util.logging.Logger;
 )
 public class PmdOperation extends AbstractOperation<PmdOperation> {
 
+    private static final String ARGS_NO_LINE_NUMBER = "--no-line-number";
+    private static final String ARGS_NO_LINE_NUMBER_SHORT = "-N";
     private static final String INPUT_PATHS = "inputPaths";
     private static final String MSG_FORMAT_NO_LINE_IN_LINK =
             "%s (line: %d)\n\t%s (%s)\n\t\t--> %s";
@@ -398,11 +400,13 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * <p>
      * The defaults are:
      * <ul>
-     * <li>cache={@code build/pmd/pmd-cache}, if not already set</li>
+     * <li>cache={@link BaseProject#buildDirectory() buildDirectory}{@code /pmd/pmd-cache}, if not already set</li>
      * <li>encoding={@code UTF-8}</li>
      * <li>incrementalAnalysis={@code true}</li>
-     * <li>inputPaths={@code [src/main, src/test]}, if not already set</li>
-     * <li>reportFile={@code build/pmd/pmd-report.txt}, if not already set</li>
+     * <li>inputPaths=[{@link BaseProject#srcMainDirectory() srcMainDirectory},
+     * {@link BaseProject#srcTestDirectory() srcTestDirectory}], if not already set</li>
+     * <li>reportFile={@link BaseProject#buildDirectory() buildDirectory}{@code /pmd/pmd-report.txt},
+     * if not already set</li>
      * <li>reportFormat={@code text}</li>
      * <li>rulePriority={@code LOW}</li>
      * <li>ruleSets={@link JavaRules#QUICK_START}, if not already set</li>
@@ -413,6 +417,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * @param project the project
      * @return this operation
      * @throws NullPointerException if {@code project} is {@code null}
+     * @implNote {@link #includeLineNumber(boolean) includeLineNumber} can be disabled using
+     * the {@code -N} or {@code --no-line-number} project argument.
      */
     public PmdOperation fromProject(BaseProject project) {
         ObjectTools.requireNonNull(project, "fromProject");
@@ -429,6 +435,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             reportFile_ =
                     IOTools.resolveFile(project.buildDirectory(), PMD_DIR, PMD_DIR + "-report.txt").toPath();
         }
+
+        parseArguments(project.arguments());
+
         return this;
     }
 
@@ -1131,6 +1140,31 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         config.setThreads(threads_);
 
         return config;
+    }
+
+    /**
+     * Parses the first run argument, setting {@link #includeLineNumber(boolean) includeLineNumber} as appropriate.
+     * <p>
+     * Valid arguments are removed from the list after processing.
+     *
+     * @param args the project's argument list (mutated by removing a consumed argument)
+     */
+    void parseArguments(List<String> args) {
+        if (args.isEmpty()) {
+            return;
+        }
+
+        var arg = args.get(0);
+
+        if (ARGS_NO_LINE_NUMBER.equals(arg) || ARGS_NO_LINE_NUMBER_SHORT.equals(arg)) {
+            if (includeLineNumber_) {
+                if (canLog(Level.INFO)) {
+                    logger.info("Line number in source file URIs disabled.");
+                }
+                includeLineNumber_ = false;
+            }
+            args.remove(0);
+        }
     }
 
     /**

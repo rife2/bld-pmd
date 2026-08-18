@@ -28,8 +28,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import rife.bld.BaseProject;
 import rife.bld.extension.pmd.JavaRules;
-import rife.bld.testing.LoggingExtension;
 import rife.bld.operations.exceptions.ExitStatusException;
+import rife.bld.testing.LoggingExtension;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -55,7 +56,7 @@ import static org.assertj.core.api.Assertions.*;
  * @since 1.0
  */
 @ExtendWith(LoggingExtension.class)
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 class PmdOperationTest {
 
     private static final String ANALYSIS_FAILURE = "analysis should fail";
@@ -832,6 +833,119 @@ class PmdOperationTest {
     }
 
     @Nested
+    @DisplayName("Execution Tests")
+    class ExecutionTests {
+
+        @Test
+        void execute() throws ExitStatusException {
+            var pmd = new PmdOperation();
+            pmd.inputPaths("src/main/java", "src/test/java")
+                    .ruleSets("config/pmd.xml")
+                    .fromProject(new BaseProject());
+
+            assertThat(pmd.ruleSets()).containsExactly("config/pmd.xml");
+            assertThat(pmd.performAnalysis(pmd.initConfiguration()).violations())
+                    .as(ANALYSIS_SUCCESS).isEqualTo(0);
+        }
+
+        @Test
+        void executeDefaultInputPaths() {
+            var pmd = new PmdOperation().fromProject(new BaseProject());
+
+            assertThat(pmd.inputPaths()).containsExactly(Paths.get("src/main").toAbsolutePath(),
+                    Paths.get("src/test").toAbsolutePath());
+        }
+
+        @Test
+        void executeNoInputPaths() {
+            var pmd = new PmdOperation();
+            assertThatCode(pmd::execute).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("parseArguments -N / --no-line-number")
+    class ParseArgsTests {
+
+        @SuppressWarnings("PMD.AvoidAccessibilityAlteration")
+        private static boolean getIncludeLineNumber(PmdOperation op)
+                throws NoSuchFieldException, IllegalAccessException {
+            var f = PmdOperation.class.getDeclaredField("includeLineNumber_");
+            f.setAccessible(true);
+            return (boolean) f.get(op);
+        }
+
+        @Test
+        void shouldBeIdempotent() throws Exception {
+            var op = new PmdOperation().includeLineNumber(false);
+            var args = new ArrayList<>(List.of("-N"));
+
+            op.parseArguments(args);
+
+            assertThat(getIncludeLineNumber(op)).isFalse();
+            assertThat(args).isEmpty();
+        }
+
+        @Test
+        void shouldDisableWithLongArg() throws Exception {
+            var op = new PmdOperation();
+            var args = new ArrayList<>(List.of("--no-line-number", "other"));
+
+            op.parseArguments(args);
+
+            assertThat(getIncludeLineNumber(op)).isFalse();
+            assertThat(args).containsExactly("other"); // only first removed
+        }
+
+        @Test
+        void shouldDisableWithShortArg() throws Exception {
+            var op = new PmdOperation();
+            var args = new ArrayList<>(List.of("-N"));
+
+            assertThat(getIncludeLineNumber(op)).isTrue();
+
+            op.parseArguments(args);
+
+            assertThat(getIncludeLineNumber(op)).isFalse();
+            assertThat(args).isEmpty(); // consumed
+        }
+
+        @Test
+        void shouldDoNothingWithEmptyArgs() throws Exception {
+            var op = new PmdOperation();
+            var args = new ArrayList<String>();
+
+            op.parseArguments(args);
+
+            assertThat(getIncludeLineNumber(op)).isTrue();
+            assertThat(args).isEmpty();
+        }
+
+        @Test
+        void shouldNotDisableWithUnrelatedArg() throws Exception {
+            var op = new PmdOperation();
+            var args = new ArrayList<>(List.of("--verbose"));
+
+            op.parseArguments(args);
+
+            assertThat(getIncludeLineNumber(op)).isTrue();
+            assertThat(args).containsExactly("--verbose");
+        }
+
+        @Test
+        void shouldOnlyParseFirstArg() throws Exception {
+            var op = new PmdOperation();
+            // second position is -N, should be ignored - only args[0] is checked
+            var args = new ArrayList<>(List.of("compile", "-N"));
+
+            op.parseArguments(args);
+
+            assertThat(getIncludeLineNumber(op)).isTrue();
+            assertThat(args).containsExactly("compile", "-N");
+        }
+    }
+
+    @Nested
     @DisplayName("Validation Tests")
     @SuppressWarnings("DataFlowIssue")
     class ValidationTests {
@@ -1217,37 +1331,4 @@ class PmdOperationTest {
                     .isInstanceOf(NullPointerException.class);
         }
     }
-
-    @Nested
-    @DisplayName("Execution Tests")
-    class ExecutionTests {
-
-        @Test
-        void execute() throws ExitStatusException {
-            var pmd = new PmdOperation();
-            pmd.inputPaths("src/main/java", "src/test/java")
-                    .ruleSets("config/pmd.xml")
-                    .fromProject(new BaseProject());
-
-            assertThat(pmd.ruleSets()).containsExactly("config/pmd.xml");
-            assertThat(pmd.performAnalysis(pmd.initConfiguration()).violations())
-                    .as(ANALYSIS_SUCCESS).isEqualTo(0);
-        }
-
-        @Test
-        void executeDefaultInputPaths() {
-            var pmd = new PmdOperation().fromProject(new BaseProject());
-
-            assertThat(pmd.inputPaths()).containsExactly(Paths.get("src/main").toAbsolutePath(),
-                    Paths.get("src/test").toAbsolutePath());
-        }
-
-        @Test
-        void executeNoInputPaths() {
-            var pmd = new PmdOperation();
-            assertThatCode(pmd::execute).isInstanceOf(IllegalArgumentException.class);
-        }
-    }
-
-
 }
