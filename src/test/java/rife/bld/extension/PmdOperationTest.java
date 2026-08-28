@@ -90,6 +90,19 @@ class PmdOperationTest {
         private static final Path bazPath = Path.of("baz/foz");
 
         @Test
+        void auxClasspath() {
+            var pmd = newPmdOperation()
+                    .inputPaths("foo")
+                    .ruleSets(CATEGORY_FOO)
+                    .auxClasspath(FOO, BAR);
+
+            assertThat(pmd.auxClasspath()).isEqualTo(FOO + File.pathSeparator + BAR);
+
+            var cfg = pmd.initConfiguration();
+            assertThat(cfg.getAuxClasspath()).isEqualTo(FOO + File.pathSeparator + BAR);
+        }
+
+        @Test
         void cache() throws ExitStatusException {
             var cache = Path.of("build/pmd/temp-cache");
             var pmd = newPmdOperation()
@@ -175,10 +188,14 @@ class PmdOperationTest {
         @Test
         void prependAuxClasspath() {
             var pmd = newPmdOperation()
+                    .inputPaths("foo")
                     .ruleSets(CATEGORY_FOO)
                     .prependAuxClasspath(FOO, BAR);
 
             assertThat(pmd.prependAuxClasspath()).isEqualTo(FOO + File.pathSeparator + BAR);
+
+            var cfg = pmd.initConfiguration();
+            assertThat(cfg.getAuxClasspath()).isEqualTo(FOO + File.pathSeparator + BAR);
         }
 
         @Test

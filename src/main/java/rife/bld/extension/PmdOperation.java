@@ -75,6 +75,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     private final List<Path> relativizeRoots_ = new ArrayList<>();
     private final Properties reportProperties_ = new Properties();
     private final Set<String> ruleSets_ = new LinkedHashSet<>();
+    private @Nullable String auxClasspath_;
     private @Nullable Path cache_;
     private boolean collectFilesRecursively_ = true;
     private Charset encoding_ = StandardCharsets.UTF_8;
@@ -106,6 +107,35 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
             logger.info("Running PMD analysis...");
         }
         performAnalysis(initConfiguration());
+    }
+
+    /**
+     * Returns the auxClasspath.
+     *
+     * @return the classpath
+     * @see #auxClasspath(String...)
+     */
+    @Nullable
+    public String auxClasspath() {
+        return auxClasspath_;
+    }
+
+    /**
+     * Uses the specified classpath like string as the auxClasspath of the configuration.
+     * <p>
+     * If the classpath String looks like a URL to a file (i.e. starts with {{@code file://}) the file will be read
+     * with each line representing an entry on the classpath.
+     *
+     * @param classpaths one or more classpaths entries
+     * @return this operation
+     * @throws NullPointerException     if {@code classpaths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code classpaths} is empty, or contains blank elements
+     * @see #auxClasspath()
+     */
+    public PmdOperation auxClasspath(String... classpaths) {
+        TextTools.requireNotBlank("auxClasspath", classpaths);
+        auxClasspath_ = String.join(File.pathSeparator, classpaths);
+        return this;
     }
 
     /**
@@ -707,6 +737,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
 
     /**
      * Prepend the specified classpaths-like string to the current ClassLoader of the configuration.
+     * <p>
      * If no ClassLoader is currently configured, the ClassLoader used to load the PMDConfiguration
      * class will be used as the parent ClassLoader of the created ClassLoader.
      * <p>
@@ -726,7 +757,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Returns the prepended classpath.
+     * Returns the prepended auxClasspath.
      *
      * @return the classpath
      * @see #prependAuxClasspath(String...)
@@ -1080,7 +1111,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Creates a new initialized configuration.
      *
      * @return a fully configured {@link PMDConfiguration}
-     * @throws NullPointerException     if the {@link #inputPaths() input path} is {@code null} or contains {@code null} elements
+     * @throws NullPointerException     if the {@link #inputPaths() input path} is {@code null} or contains
+     *                                  {@code null} elements
      * @throws IllegalArgumentException if {@link #inputPaths() input path} is empty
      */
     @TestOnly
@@ -1092,6 +1124,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
         config.addRelativizeRoots(relativizeRoots_);
         config.collectFilesRecursively(collectFilesRecursively_);
 
+        if (auxClasspath_ != null) {
+            config.setAuxClasspath(auxClasspath_);
+        }
         if (prependAuxClasspath_ != null) {
             config.prependAuxClasspath(prependAuxClasspath_);
         }
