@@ -60,7 +60,7 @@ public class PmdOperationBuild extends Project {
         scope(runtime)
                 .include(dependency(
                         "org.slf4j", "slf4j-simple",
-                        version(2, 0, 18)));
+                        version(2, 0, 19)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-testing-helpers",
                         version(1, 1, 0, "SNAPSHOT")))
