@@ -30,7 +30,30 @@ public void pmd() throws Exception {
 ```
 
 ```console
-./bld pmd test
+./bld clean compile pmd test
+```
+
+The output might look something like:
+
+```console
+Executing matched command: clean
+Cleaning finished successfully.
+Executing matched command: compile
+Compilation finished successfully.
+Sep 17, 2026 8:47:54 AM rife.bld.extension.PmdOperation execute
+INFO: Running PMD analysis...
+Sep 17, 2026 8:47:55 AM rife.bld.extension.PmdOperation performAnalysis
+INFO: inputPaths[/home/dev/readme/src/main, /home//dev/readme/src/test]
+Sep 17, 2026 8:47:55 AM rife.bld.extension.PmdOperation performAnalysis
+INFO: ruleSets[rulesets/java/quickstart.xml]
+Sep 17, 2026 8:47:55 AM rife.bld.extension.PmdOperation printViolations
+WARNING: file:///home/dev/readme/src/main/java/com/example/ReadMe.java:10
+	UnusedLocalVariable (https://docs.pmd-code.org/pmd-doc-7.27.0/pmd_rules_java_bestpractices.html#unusedlocalvariable)
+		--> Avoid unused local variables such as 't'.
+Sep 17, 2026 8:47:55 AM rife.bld.extension.PmdOperation printViolations
+WARNING: 1 rule violations were found. See the report at: file:///home/dev/readme/build/pmd/pmd-report.txt
+Sep 17, 2026 8:47:55 AM rife.bld.extension.PmdOperation performAnalysis
+INFO: 122 rules were checked.
 ```
 
 To check the main source directory using a custom ruleset, [Java Error Prone](https://docs.pmd-code.org/latest/pmd_rules_java.html#error-prone) configuration, and failing on any violation.
@@ -48,7 +71,7 @@ public void pmdMain() throws Exception {
 ```
 
 ```console
-./bld compile pmd-main
+./bld clean compile pmd-main
 ```
 
 Please check the [PmdOperation documentation](https://rife2.github.io/bld-pmd/rife/bld/extension/PmdOperation.html#method-summary) for all available configuration options.
