@@ -47,7 +47,7 @@ public class PmdOperationBuild extends Project {
         var junit = version(6, 1, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(1, 3, 0)))
+                        version(1, 4, 0, "SNAPSHOT")))
                 .include(dependency("com.uwyn.rife2", "bld", version(3, 0, 1)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(provided)
@@ -59,7 +59,7 @@ public class PmdOperationBuild extends Project {
         scope(runtime)
                 .include(dependency(
                         "org.slf4j", "slf4j-simple",
-                        version(2, 0, 19)));
+                        version(2, 0, 20)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-testing-helpers",
                         version(1, 1, 1)))
