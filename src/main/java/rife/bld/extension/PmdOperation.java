@@ -22,7 +22,7 @@ import net.sourceforge.pmd.PmdAnalysis;
 import net.sourceforge.pmd.lang.LanguageVersion;
 import net.sourceforge.pmd.lang.rule.RulePriority;
 import net.sourceforge.pmd.reporting.RuleViolation;
-import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import rife.bld.BaseProject;
@@ -1115,7 +1115,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      *                                  {@code null} elements
      * @throws IllegalArgumentException if {@link #inputPaths() input path} is empty
      */
-    @TestOnly
+    @VisibleForTesting
     PMDConfiguration initConfiguration() {
         ObjectTools.requireNotEmpty(inputPaths_, INPUT_PATHS);
 
