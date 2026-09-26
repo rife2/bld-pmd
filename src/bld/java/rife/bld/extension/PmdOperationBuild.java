@@ -34,7 +34,7 @@ public class PmdOperationBuild extends Project {
     public PmdOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-pmd";
-        version = version(1, 7, 1, "SNAPSHOT");
+        version = version(1, 7, 1);
 
         javaRelease = 17;
 
@@ -47,7 +47,7 @@ public class PmdOperationBuild extends Project {
         var junit = version(6, 1, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(1, 4, 0, "SNAPSHOT")))
+                        version(1, 4, 0)))
                 .include(dependency("com.uwyn.rife2", "bld", version(3, 0, 1)))
                 .include(dependency("net.sourceforge.pmd", "pmd-java", pmd));
         scope(provided)
