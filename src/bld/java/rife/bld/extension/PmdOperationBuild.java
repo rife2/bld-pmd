@@ -53,7 +53,7 @@ public class PmdOperationBuild extends Project {
         scope(provided)
                 .include(dependency("org.jspecify", "jspecify", "1.0.1"))
                 .include(dependency("com.github.spotbugs", "spotbugs-annotations",
-                        version(4, 10, 4)))
+                        version(4, 10, 5)))
                 .include(dependency("org.jetbrains", "annotations",
                         version(26, 1, 0)));
         scope(runtime)
