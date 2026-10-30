@@ -98,8 +98,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Performs the PMD code analysis operation.
      *
      * @throws Exception           if the analysis fails to execute
-     * @throws ExitStatusException if violations or errors occur and {@code failOnViolation}
-     *                             or {@code failOnError} is true
+     * @throws ExitStatusException if violations or errors occur and either {@code failOnViolation}
+     *                             or {@code failOnError} is {@code true}
      */
     @Override
     public void execute() throws Exception {
@@ -110,7 +110,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Returns the auxClasspath.
+     * Returns the auxiliary classpath.
      *
      * @return the classpath
      * @see #auxClasspath(String...)
@@ -121,12 +121,12 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Uses the specified classpath like string as the auxClasspath of the configuration.
+     * Uses the specified classpath-like string as the auxiliary classpath of the configuration.
      * <p>
-     * If the classpath String looks like a URL to a file (i.e. starts with {{@code file://}) the file will be read
-     * with each line representing an entry on the classpath.
+     * If the classpath string looks like a file URL (that is, it starts with {@code file://}), the file is read
+     * with each line representing a classpath entry.
      *
-     * @param classpaths one or more classpaths entries
+     * @param classpaths one or more classpath entries
      * @return this operation
      * @throws NullPointerException     if {@code classpaths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code classpaths} is empty, or contains blank elements
@@ -183,8 +183,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * When specified, any directory mentioned with {@link #inputPaths()} will only be searched
-     * for files that are direct children. By default, subdirectories are recursively included.
+     * When {@code false}, directories specified via {@link #inputPaths()} are searched only for
+     * files that are direct children. By default, subdirectories are included recursively.
      *
      * @param collectFilesRecursively whether to collect files recursively or not
      * @return this operation
@@ -196,7 +196,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the default language version to be used for all input files.
+     * Sets the default language versions to be used for all input files.
      *
      * @param languageVersions one or more language versions
      * @return this operation
@@ -212,7 +212,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the default language version to be used for all input files.
+     * Sets the default language versions to be used for all input files.
      *
      * @param languageVersions a collection of language versions
      * @return this operation
@@ -242,7 +242,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Specifies the character set encoding of the source code files. The default is
      * {@link StandardCharsets#UTF_8 UTF-8}.
      *
-     * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
+     * <p>Valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
      *
      * @param encoding the encoding name
      * @return this operation
@@ -259,7 +259,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * Specifies the character set encoding of the source code files. The default is
      * {@link StandardCharsets#UTF_8 UTF-8}.
      *
-     * <p>The valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
+     * <p>Valid values are the standard character sets of {@link java.nio.charset.Charset Charset}.</p>
      *
      * @param encoding the charset
      * @return this operation
@@ -283,7 +283,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets the paths to exclude from the analysis.
      *
      * @param paths one or more paths to exclude
      * @return this operation
@@ -299,7 +299,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets the paths to exclude from the analysis.
      *
      * @param paths paths to exclude
      * @return this operation
@@ -315,7 +315,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets the paths to exclude from the analysis.
      *
      * @param files one or more paths to exclude
      * @return this operation
@@ -332,7 +332,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets the paths to exclude from the analysis.
      *
      * @param files a collection of paths to exclude
      * @return this operation
@@ -349,7 +349,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets the paths to exclude from the analysis.
      *
      * @param excludes one or more paths to exclude
      * @return this operation
@@ -366,7 +366,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to exclude from the analysis.
+     * Sets the paths to exclude from the analysis.
      *
      * @param excludes a collection of paths to exclude
      * @return this operation
@@ -383,11 +383,11 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets whether the build will exit on recoverable errors.
+     * Sets whether the build exits when recoverable errors occur.
      * <p>
-     * Default is: {@code true}
+     * Defaults to {@code true}.
      * <p>
-     * Note: If only violations are found, see {@link #failOnViolation(boolean) failOnViolation}
+     * If only violations are found, see {@link #failOnViolation(boolean) failOnViolation}.
      *
      * @param failOnError whether to exit and fail the build if recoverable errors occurred
      * @return this operation
@@ -399,9 +399,9 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets whether the build will continue on violations.
+     * Sets whether the build exits when violations are found.
      * <p>
-     * Note: If additionally recoverable errors occurred, see {@link #failOnError(boolean) failOnError}
+     * If recoverable errors also occur, see {@link #failOnError(boolean) failOnError}.
      *
      * @param failOnViolation whether to exit and fail the build if violations are found
      * @return this operation
@@ -413,7 +413,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Forces a language to be used for all input files, irrespective of file names.
+     * Forces a language version to be used for all input files, irrespective of file names.
      *
      * @param languageVersion the language version
      * @return this operation
@@ -430,18 +430,19 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
      * <p>
      * The defaults are:
      * <ul>
-     * <li>cache={@link BaseProject#buildDirectory() buildDirectory}{@code /pmd/pmd-cache}, if not already set</li>
-     * <li>encoding={@code UTF-8}</li>
-     * <li>incrementalAnalysis={@code true}</li>
-     * <li>inputPaths=[{@link BaseProject#srcMainDirectory() srcMainDirectory},
-     * {@link BaseProject#srcTestDirectory() srcTestDirectory}], if not already set</li>
-     * <li>reportFile={@link BaseProject#buildDirectory() buildDirectory}{@code /pmd/pmd-report.txt},
+     * <li>{@link #cache(File) cache}={@link BaseProject#buildDirectory() buildDirectory}{@code /pmd/pmd-cache},
      * if not already set</li>
-     * <li>reportFormat={@code text}</li>
-     * <li>rulePriority={@code LOW}</li>
-     * <li>ruleSets={@link JavaRules#QUICK_START}, if not already set</li>
-     * <li>suppressedMarker={@code NOPMD}</li>
-     * <li>threads=1</li>
+     * <li>{@link #encoding(Charset) encoding}={@link StandardCharsets#UTF_8}</li>
+     * <li>{@link #incrementalAnalysis(boolean) incrementalAnalysis}={@code true}</li>
+     * <li>{@link #inputPaths(File...) inputPaths}=[{@link BaseProject#srcMainDirectory() srcMainDirectory},
+     * {@link BaseProject#srcTestDirectory() srcTestDirectory}], if not already set</li>
+     * <li>{@link #reportFile(File) reportFile}={@link BaseProject#buildDirectory() buildDirectory}
+     * {@code /pmd/pmd-report.txt}, if not already set</li>
+     * <li>{@link #reportFormat(String) reportFormat}={@code text}</li>
+     * <li>{@link #minimumPriority(RulePriority) minimumPriority}={@link RulePriority#LOW}</li>
+     * <li>{@link #ruleSets(JavaRules...) ruleSets}={@link JavaRules#QUICK_START}, if not already set</li>
+     * <li>{@link #suppressedMarker(String) suppressedMarker}={@code NOPMD}</li>
+     * <li>{@link #threads(int) threads}=1</li>
      * </ul>
      *
      * @param project the project
@@ -516,10 +517,10 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Enables or disables line number in source file URIs.
+     * Enables or disables line numbers in source file URIs.
      * <p>
-     * While clicking on the URI works in IntelliJ IDEA, Visual Studio Code, etc.; it might
-     * not in terminal emulators.
+     * Although clicking a URI works in IntelliJ IDEA, Visual Studio Code, and similar editors,
+     * it may not work in terminal emulators.
      * <p>
      * Default: {@code true}
      *
@@ -554,7 +555,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
+     * Sets the paths to source files or directories containing source files to analyze.
      *
      * @param paths one or more paths
      * @return this operation
@@ -570,7 +571,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
+     * Sets the paths to source files or directories containing source files to analyze.
      *
      * @param files one or more paths
      * @return this operation
@@ -587,7 +588,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
+     * Sets the paths to source files or directories containing source files to analyze.
      *
      * @param inputPaths one or more paths
      * @return this operation
@@ -604,7 +605,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
+     * Sets the paths to source files or directories containing source files to analyze.
      *
      * @param paths a collection of input paths
      * @return this operation
@@ -620,7 +621,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
+     * Sets the paths to source files or directories containing source files to analyze.
      *
      * @param files a collection of input paths
      * @return this operation
@@ -637,7 +638,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets paths to source files or directories containing source files to analyze.
+     * Sets the paths to source files or directories containing source files to analyze.
      *
      * @param inputPaths a collection of input paths
      * @return this operation
@@ -654,7 +655,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the minimum priority threshold when loading Rules from RuleSets.
+     * Sets the minimum priority threshold when loading rules from rule sets.
      *
      * @param priority the minimum rule priority
      * @return this operation
@@ -666,7 +667,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Performs the PMD analysis with the given config.
+     * Performs the PMD analysis with the given configuration.
      *
      * @param config the configuration
      * @return the analysis results
@@ -736,15 +737,15 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Prepend the specified classpaths-like string to the current ClassLoader of the configuration.
+     * Prepends the specified classpath-like string to the current class loader of the configuration.
      * <p>
-     * If no ClassLoader is currently configured, the ClassLoader used to load the PMDConfiguration
-     * class will be used as the parent ClassLoader of the created ClassLoader.
+     * If no class loader is currently configured, the class loader used to load the
+     * {@link PMDConfiguration} class is used as the parent class loader of the created class loader.
      * <p>
-     * If the classpaths String looks like a URL to a file (i.e., starts with {@code file://}) the
-     * file will be read with each line representing an entry on the classpaths.
+     * If the classpath string looks like a file URL (that is, it starts with {@code file://}), the file
+     * is read with each line representing a classpath entry.
      *
-     * @param classpaths one or more classpaths entries
+     * @param classpaths one or more classpath entries
      * @return this operation
      * @throws NullPointerException     if {@code classpaths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code classpaths} is empty, or contains blank elements
@@ -757,7 +758,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Returns the prepended auxClasspath.
+     * Returns the prepended auxiliary classpath.
      *
      * @return the classpath
      * @see #prependAuxClasspath(String...)
@@ -768,7 +769,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds several paths to shorten paths that are output in the report.
+     * Adds root paths used to shorten paths output in the report.
      *
      * @param roots one or more relative root paths
      * @return this operation
@@ -784,7 +785,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds several paths to shorten paths that are output in the report.
+     * Adds root paths used to shorten paths output in the report.
      *
      * @param roots one or more relative root paths
      * @return this operation
@@ -801,7 +802,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds several paths to shorten paths that are output in the report.
+     * Adds root paths used to shorten paths output in the report.
      *
      * @param roots one or more relative root paths
      * @return this operation
@@ -818,7 +819,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds several paths to shorten paths that are output in the report.
+     * Adds root paths used to shorten paths output in the report.
      *
      * @param roots a collection of relative root paths
      * @return this operation
@@ -834,7 +835,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Returns paths to shorten paths that are output in the report.
+     * Returns the root paths used to shorten paths output in the report.
      *
      * @return the relative root paths
      * @see #relativizeRoots(Path...)
@@ -845,7 +846,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds several paths to shorten paths that are output in the report.
+     * Adds root paths used to shorten paths output in the report.
      *
      * @param roots a collection of relative root paths
      * @return this operation
@@ -862,7 +863,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Adds several paths to shorten paths that are output in the report.
+     * Adds root paths used to shorten paths output in the report.
      *
      * @param roots a collection of relative root paths
      * @return this operation
@@ -879,7 +880,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the path to the report page.
+     * Sets the path to the report file.
      *
      * @param path the report file path
      * @return this operation
@@ -894,7 +895,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the path to the report page.
+     * Sets the path to the report file.
      *
      * @param file the report file
      * @return this operation
@@ -910,7 +911,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the path to the report page.
+     * Sets the path to the report file.
      *
      * @param reportFile the report file path
      * @return this operation
@@ -953,7 +954,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets the Report properties. These are used to create the Renderer.
+     * Sets the report properties. These are used to create the renderer.
      *
      * @param properties the report properties
      * @return this operation
@@ -1015,7 +1016,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets rule set paths.
+     * Sets rule sets from {@link JavaRules} values.
      *
      * @param ruleSets one or more rule sets
      * @return this operation
@@ -1034,7 +1035,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Sets rule set paths.
+     * Sets rule sets from {@link JavaRules} values.
      *
      * @param ruleSets a collection of rule sets
      * @return this operation
@@ -1108,7 +1109,7 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Creates a new initialized configuration.
+     * Creates a new PMD configuration initialized from this operation.
      *
      * @return a fully configured {@link PMDConfiguration}
      * @throws NullPointerException     if the {@link #inputPaths() input path} is {@code null} or contains
@@ -1178,7 +1179,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Parses the first run argument, setting {@link #includeLineNumber(boolean) includeLineNumber} as appropriate.
+     * Parses the first project argument, setting
+     * {@link #includeLineNumber(boolean) includeLineNumber} as appropriate.
      * <p>
      * Valid arguments are removed from the list after processing.
      *
@@ -1203,8 +1205,8 @@ public class PmdOperation extends AbstractOperation<PmdOperation> {
     }
 
     /**
-     * Logs each violation and throws or warns depending on {@link #failOnViolation_}.
-     * Accepts the pre-fetched violations list to avoid calling {@code report.getViolations()} twice.
+     * Logs each violation and either throws or warns depending on
+     * {@link #failOnViolation(boolean)}.
      *
      * @param config     the PMD configuration
      * @param violations the violations to print
