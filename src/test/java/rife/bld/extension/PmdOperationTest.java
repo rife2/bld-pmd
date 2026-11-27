@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import rife.bld.BaseProject;
@@ -75,6 +76,10 @@ class PmdOperationTest {
     private static final LoggingExtension loggingExtension = new LoggingExtension(PmdOperation.class.getName());
     private static final Path pathBar = Path.of(BAR);
     private static final Path pathFoo = Path.of(FOO);
+
+
+    @TempDir
+    Path tempDir;
 
     PmdOperation newPmdOperation() {
         return new PmdOperation()
@@ -803,13 +808,18 @@ class PmdOperationTest {
             }
 
             @Test
-            void ruleSetsConfigFile() throws ExitStatusException {
+            void ruleSetsConfigFile() throws ExitStatusException, IOException {
+                var p = new BaseProject();
+                var ignoreFile = tempDir.resolve("ignore.txt");
+                Files.writeString(ignoreFile, Path.of("src", "test").toAbsolutePath().toString());
+
                 var pmd = newPmdOperation()
                         .ruleSets("src/test/resources/xml/pmd.xml")
-                        .fromProject(new BaseProject())
-                        .ignoreFile("src/test/resources/txt/ignore-all.txt");
+                        .fromProject(p)
+                        .excludes(Path.of("src", "main").toAbsolutePath())
+                        .ignoreFile(ignoreFile);
 
-                assertThat(pmd.performAnalysis(pmd.initConfiguration()).hasNoErrors()).isTrue();
+                assertThat(pmd.performAnalysis(pmd.initConfiguration()).hasNoViolations()).isTrue();
             }
 
             @Test

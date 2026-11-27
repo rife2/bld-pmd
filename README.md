@@ -74,4 +74,5 @@ public void pmdMain() throws Exception {
 ./bld clean compile pmd-main
 ```
 
+## API Reference
 Please check the [PmdOperation documentation](https://rife2.github.io/bld-pmd/rife/bld/extension/PmdOperation.html#method-summary) for all available configuration options.
